@@ -1,6 +1,5 @@
 import '../styles/globals.css';
-import { Footer } from '../components/footer';
-import { Header } from '../components/header';
+import { AppShell } from '../components/AppShell';
 
 export const metadata = {
     title: {
@@ -18,11 +17,7 @@ export default function RootLayout({ children }) {
             <body className="antialiased text-white">
                 {/* <div className="flex flex-col min-h-screen px-6 bg-noise sm:px-12"> */}
                 <div className="flex flex-col min-h-screen px-6 bg-[#FDF8F7] sm:px-12">
-                    <div className="flex flex-col w-full max-w-5xl mx-auto grow">
-                        <Header />
-                        <main className="grow pb-28">{children}</main>
-                        <Footer />
-                    </div>
+                    <AppShell>{children}</AppShell>
                 </div>
             </body>
         </html>

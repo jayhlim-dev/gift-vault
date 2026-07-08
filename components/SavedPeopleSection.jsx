@@ -1,13 +1,12 @@
-import { ProductCard } from 'components/ProductCard';
+'use client';
 
-const savedPeople = [
-    { label: 'Jessica', initial: 'J', tone: 'pink', avatarSrc: 'https://randomuser.me/api/portraits/women/65.jpg' },
-    { label: 'Sabrine', initial: 'S', tone: 'amber', avatarSrc: 'https://randomuser.me/api/portraits/women/44.jpg' },
-    { label: 'Dimas', initial: 'D', tone: 'blue', avatarSrc: 'https://randomuser.me/api/portraits/men/32.jpg' }
-];
+import { ProductCard } from 'components/ProductCard';
+import { getToneForRelationship } from 'lib/gift-vault-utils';
+import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 
 export function SavedPeopleSection() {
-    const visiblePeople = savedPeople.slice(0, 3);
+    const { data: persons, isLoading } = useFirebaseCollection('persons');
+    const visiblePeople = persons.slice(0, 3);
 
     return (
         <section className="w-full">
@@ -22,16 +21,23 @@ export function SavedPeopleSection() {
             </header>
 
             <div className="grid grid-cols-4 gap-3">
-                {visiblePeople.map((person) => (
-                    <ProductCard
-                        key={person.label}
-                        label={person.label}
-                        initial={person.initial}
-                        avatarSrc={person.avatarSrc}
-                        tone={person.tone}
-                        className="justify-self-center"
-                    />
-                ))}
+                {isLoading
+                    ? Array.from({ length: 3 }).map((_, index) => (
+                          <div key={index} className="flex w-full max-w-[76px] flex-col items-center gap-1.5 justify-self-center">
+                              <div className="h-16 w-16 animate-pulse rounded-full bg-neutral-200" />
+                              <div className="h-3 w-10 animate-pulse rounded-full bg-neutral-200" />
+                          </div>
+                      ))
+                    : visiblePeople.map((person) => (
+                          <ProductCard
+                              key={person.id}
+                              label={person.name || 'Unnamed'}
+                              initial={person.name?.charAt(0)?.toUpperCase() || '?'}
+                              avatarSrc={person.avatarURL || undefined}
+                              tone={getToneForRelationship(person.relationship)}
+                              className="animate-fade-in justify-self-center"
+                          />
+                      ))}
                 <ProductCard label="Add" isAdd className="justify-self-center" />
             </div>
         </section>
