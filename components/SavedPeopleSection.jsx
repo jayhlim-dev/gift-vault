@@ -31,6 +31,7 @@ export function SavedPeopleSection() {
                     : visiblePeople.map((person) => (
                           <ProductCard
                               key={person.id}
+                              href={`/persons/${person.id}`}
                               label={person.name || 'Unnamed'}
                               initial={person.name?.charAt(0)?.toUpperCase() || '?'}
                               avatarSrc={person.avatarURL || undefined}
@@ -38,7 +39,7 @@ export function SavedPeopleSection() {
                               className="animate-fade-in justify-self-center"
                           />
                       ))}
-                <ProductCard label="Add" isAdd className="justify-self-center" />
+                <ProductCard label="Add" isAdd href="/persons/new" className="justify-self-center" />
             </div>
         </section>
     );

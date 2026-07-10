@@ -141,7 +141,9 @@ async function seed() {
         price: '349.99',
         imageURL: '',
         status: 'pending',
-        userID
+        personId: sabrinaRef.id,
+        userID,
+        createdAt: twoDaysAgo
     });
 
     await wishlistsRef.add({
@@ -151,7 +153,9 @@ async function seed() {
         price: '25.00',
         imageURL: '',
         status: 'pending',
-        userID
+        personId: jessicaId,
+        userID,
+        createdAt: fiveHoursAgo
     });
 
     console.log('Seeded wishlists');

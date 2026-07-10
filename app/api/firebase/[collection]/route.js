@@ -7,6 +7,7 @@ Collections that belong to a specific user. Requests for these require a valid
 Firebase ID token, and results are filtered to that user's own documents (by `userID`).
 */
 const USER_SCOPED_COLLECTIONS = new Set(['persons', 'notes', 'wishlists']);
+const PERSON_FILTERABLE_COLLECTIONS = new Set(['notes', 'wishlists']);
 
 /*
 Generic Firestore read endpoint.
@@ -22,6 +23,7 @@ export async function GET(request, { params }) {
     const { searchParams } = new URL(request.url);
     const limitParam = searchParams.get('limit');
     const limit = limitParam ? Number(limitParam) : undefined;
+    const personIdParam = searchParams.get('personId');
 
     if (!collection) {
         return NextResponse.json({ error: 'Missing collection name' }, { status: 400 });
@@ -37,6 +39,10 @@ export async function GET(request, { params }) {
         }
 
         where = [['userID', '==', user.uid]];
+
+        if (personIdParam && PERSON_FILTERABLE_COLLECTIONS.has(collection)) {
+            where.push(['personId', '==', personIdParam]);
+        }
     }
 
     try {
