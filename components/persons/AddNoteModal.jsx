@@ -4,6 +4,7 @@ import { BackButton } from 'components/BackButton';
 import { BirthdayPicker } from 'components/persons/BirthdayPicker';
 import { PersonIcon, PlusIcon } from 'components/persons/PersonIcons';
 import { useApiClient } from 'lib/hooks/useApiClient';
+import { useLoading } from 'lib/LoadingContext';
 import { useEffect, useState } from 'react';
 
 const QUICK_TAGS = [
@@ -39,6 +40,7 @@ function todayIsoDate() {
 
 export function AddNoteModal({ person, onClose, onSaved }) {
     const { request } = useApiClient();
+    const { runWithLoading } = useLoading();
     const [text, setText] = useState('');
     const [noteDate, setNoteDate] = useState(todayIsoDate);
     const [isPinned, setIsPinned] = useState(false);
@@ -67,18 +69,23 @@ export function AddNoteModal({ person, onClose, onSaved }) {
         setError('');
 
         try {
-            await request('/api/notes', {
-                method: 'POST',
-                body: {
-                    text: text.trim(),
-                    personId: person.id,
-                    category: selectedTag,
-                    noteDate,
-                    isPinned
-                }
-            });
-            onSaved?.();
-            onClose();
+            await runWithLoading(
+                async () => {
+                    await request('/api/notes', {
+                        method: 'POST',
+                        body: {
+                            text: text.trim(),
+                            personId: person.id,
+                            category: selectedTag,
+                            noteDate,
+                            isPinned
+                        }
+                    });
+                    onSaved?.();
+                    onClose();
+                },
+                { message: 'Saving note…' }
+            );
         } catch (err) {
             setError(err.message || 'Failed to save note');
         } finally {

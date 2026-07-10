@@ -5,6 +5,7 @@ import { NotebookIcon } from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+import { useLoading } from 'lib/LoadingContext';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -26,6 +27,7 @@ function TrashIcon() {
 export function PersonNotesTab({ personId, person, isProfileIncomplete = false }) {
     const { data: notes, isLoading, refetch } = useFirebaseCollection('notes', { personId });
     const { request } = useApiClient();
+    const { runWithLoading } = useLoading();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const sortedNotes = notes
@@ -34,8 +36,13 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
 
     async function handleDeleteNote(noteId) {
         try {
-            await request(`/api/notes/${noteId}`, { method: 'DELETE' });
-            refetch();
+            await runWithLoading(
+                async () => {
+                    await request(`/api/notes/${noteId}`, { method: 'DELETE' });
+                    refetch();
+                },
+                { message: 'Deleting note…' }
+            );
         } catch (err) {
             console.error('[PersonNotesTab] Failed to delete note:', err);
         }

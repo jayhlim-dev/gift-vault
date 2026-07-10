@@ -2,6 +2,7 @@
 
 import { AuthGuard } from 'components/auth/AuthGuard';
 import { AuthProvider } from 'lib/auth/AuthContext';
+import { LoadingProvider } from 'lib/LoadingContext';
 import { usePathname } from 'next/navigation';
 import { Footer } from './footer';
 import { Header } from './header';
@@ -33,13 +34,15 @@ export function AppShell({ children }) {
 
     return (
         <AuthProvider>
-            <div className="flex flex-col w-full max-w-5xl mx-auto grow">
-                <AuthGuard>
-                    {!hideHeader ? <Header /> : null}
-                    <main className={showFooter ? 'grow pb-28' : hideHeader ? 'flex grow flex-col' : 'grow pb-28'}>{children}</main>
-                    {showFooter ? <Footer /> : null}
-                </AuthGuard>
-            </div>
+            <LoadingProvider>
+                <div className="flex flex-col w-full max-w-5xl mx-auto grow">
+                    <AuthGuard>
+                        {!hideHeader ? <Header /> : null}
+                        <main className={showFooter ? 'grow pb-28' : hideHeader ? 'flex grow flex-col' : 'grow pb-28'}>{children}</main>
+                        {showFooter ? <Footer /> : null}
+                    </AuthGuard>
+                </div>
+            </LoadingProvider>
         </AuthProvider>
     );
 }
