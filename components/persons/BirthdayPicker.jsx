@@ -59,10 +59,14 @@ function clampPickerValue(value) {
     };
 }
 
-function formatBirthdayLabel(value) {
+function formatBirthdayLabel(value, displayFormat = 'long') {
     const date = toDate(value);
     if (!date) {
         return '';
+    }
+
+    if (displayFormat === 'numeric') {
+        return date.toLocaleDateString('en-GB');
     }
 
     return date.toLocaleDateString('en-US', {
@@ -84,7 +88,15 @@ function buildYearOptions() {
 const triggerClassName =
     'flex w-full items-center rounded-full border border-[#F0E8E5] bg-[#FAF8F7] py-3.5 pr-5 pl-11 text-left text-sm font-normal transition focus:border-rose-300 focus:bg-white focus:outline-none disabled:opacity-60';
 
-export function BirthdayPicker({ value, onChange, disabled = false, className = '' }) {
+export function BirthdayPicker({
+    value,
+    onChange,
+    disabled = false,
+    className = '',
+    displayFormat = 'long',
+    placeholder = 'Select date',
+    dialogTitle = 'Select Birthday'
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const [draftValue, setDraftValue] = useState(() => parseBirthdayValue(value));
     const years = useMemo(() => buildYearOptions(), []);
@@ -131,7 +143,7 @@ export function BirthdayPicker({ value, onChange, disabled = false, className = 
         closePicker();
     }
 
-    const displayLabel = value ? formatBirthdayLabel(value) : 'Select date';
+    const displayLabel = value ? formatBirthdayLabel(value, displayFormat) : placeholder;
 
     return (
         <>
@@ -161,7 +173,7 @@ export function BirthdayPicker({ value, onChange, disabled = false, className = 
                     <div
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Select birthday"
+                        aria-label={dialogTitle}
                         className="relative z-10 w-full max-w-sm rounded-t-3xl bg-white px-4 pt-3 pb-6 shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
                     >
                         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-neutral-200" />
@@ -174,7 +186,7 @@ export function BirthdayPicker({ value, onChange, disabled = false, className = 
                             >
                                 Cancel
                             </button>
-                            <p className="text-sm font-semibold text-neutral-800">Select Birthday</p>
+                            <p className="text-sm font-semibold text-neutral-800">{dialogTitle}</p>
                             <button
                                 type="button"
                                 onClick={handleConfirm}

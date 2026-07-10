@@ -1,10 +1,18 @@
 'use client';
 
 import { BackButton } from 'components/BackButton';
-import { NotebookIcon, PersonIcon } from 'components/persons/PersonIcons';
+import {
+    CakeIcon,
+    GiftIdeasIcon,
+    HeartFilledIcon,
+    HeartIcon,
+    NotebookIcon,
+    NotesTabIcon,
+    PersonIcon
+} from 'components/persons/PersonIcons';
 import { PersonNotesTab } from 'components/persons/PersonNotesTab';
 import { PersonWishlistTab } from 'components/persons/PersonWishlistTab';
-import { formatShortDate, getToneForRelationship, toDate } from 'lib/gift-vault-utils';
+import { formatShortDate, toDate } from 'lib/gift-vault-utils';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Link from 'next/link';
@@ -12,25 +20,38 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 const TABS = [
-    { id: 'notes', label: 'Notes' },
-    { id: 'wishlist', label: 'Wishlist' },
-    { id: 'ideas', label: 'Gift Ideas' },
-    { id: 'moments', label: 'Moments' }
+    { id: 'notes', label: 'Notes', Icon: NotesTabIcon },
+    { id: 'wishlist', label: 'Wishlist', Icon: HeartIcon },
+    { id: 'ideas', label: 'Gift Ideas', Icon: GiftIdeasIcon }
 ];
-
-const TONE_BADGE_ICON = {
-    pink: '❤',
-    amber: '★',
-    blue: '●'
-};
 
 function MenuIcon() {
     return (
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <circle cx="12" cy="5" r="1.6" fill="currentColor" />
+            <circle cx="5" cy="12" r="1.6" fill="currentColor" />
             <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-            <circle cx="12" cy="19" r="1.6" fill="currentColor" />
+            <circle cx="19" cy="12" r="1.6" fill="currentColor" />
         </svg>
+    );
+}
+
+function ProfileEmptyState({ personId }) {
+    return (
+        <div className="flex flex-col items-center gap-5 rounded-3xl bg-white px-8 py-12 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+            <NotebookIcon size={64} />
+            <div className="flex flex-col gap-2.5">
+                <p className="text-lg font-bold text-neutral-900">No information yet.</p>
+                <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
+                    Complete the profile first to start saving notes, wishlist, and special moments.
+                </p>
+            </div>
+            <Link
+                href={`/persons/${personId}/edit`}
+                className="mt-1 w-full rounded-full bg-[#D4625A] px-5 py-3.5 text-sm font-semibold text-white no-underline shadow-[0_4px_14px_rgba(212,98,90,0.28)] transition hover:bg-[#c4564f]"
+            >
+                Complete Profile
+            </Link>
+        </div>
     );
 }
 
@@ -73,10 +94,10 @@ export default function PersonDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto flex w-full max-w-sm flex-col gap-6 pt-6">
-                <div className="h-9 w-9 animate-pulse rounded-full bg-neutral-100" />
+            <div className="mx-auto flex w-full max-w-sm flex-col gap-6 px-5 pt-4 pb-28">
+                <div className="h-9 w-full animate-pulse rounded-full bg-neutral-100" />
                 <div className="flex flex-col items-center gap-3">
-                    <div className="h-24 w-24 animate-pulse rounded-full bg-neutral-100" />
+                    <div className="h-30 w-30 animate-pulse rounded-full bg-neutral-100" />
                     <div className="h-4 w-24 animate-pulse rounded-full bg-neutral-100" />
                 </div>
             </div>
@@ -85,25 +106,25 @@ export default function PersonDetailPage() {
 
     if (!person) {
         return (
-            <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4 pt-16 text-center">
+            <div className="mx-auto flex w-full max-w-sm flex-col items-center gap-4 px-5 pt-16 pb-28 text-center">
                 <p className="text-sm text-neutral-500">This person couldn&apos;t be found.</p>
-                <Link href="/" className="text-sm font-semibold text-rose-400">
+                <Link href="/" className="text-sm font-semibold text-[#D4625A] no-underline">
                     Back to home
                 </Link>
             </div>
         );
     }
 
-    const tone = getToneForRelationship(person.relationship);
     const birthdayDate = toDate(person.birthday);
     const isProfileIncomplete = !person.birthday;
 
     return (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 pt-6">
-            <header className="flex items-center justify-between">
-                <BackButton fallbackHref="/" className="-ml-2" />
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 bg-[#FAF8F7] px-5 pt-4 pb-28">
+            <header className="relative flex items-center justify-center py-1">
+                <BackButton fallbackHref="/" className="absolute left-0 -ml-2" />
+                <h1 className="text-base font-semibold text-neutral-800">Person Detail</h1>
 
-                <div className="relative" ref={menuRef}>
+                <div className="absolute right-0" ref={menuRef}>
                     <button
                         type="button"
                         onClick={() => setIsMenuOpen((open) => !open)}
@@ -125,7 +146,7 @@ export default function PersonDetailPage() {
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-rose-500 transition hover:bg-rose-50 disabled:opacity-60"
+                                className="block w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-[#D4625A] transition hover:bg-rose-50 disabled:opacity-60"
                             >
                                 {isDeleting ? 'Deleting…' : 'Delete'}
                             </button>
@@ -137,28 +158,35 @@ export default function PersonDetailPage() {
             <div className="flex flex-col items-center gap-3 text-center">
                 <div className="relative">
                     {person.avatarURL ? (
-                        <img src={person.avatarURL} alt={person.name} className="h-24 w-24 rounded-full object-cover" />
+                        <img src={person.avatarURL} alt={person.name} className="h-30 w-30 rounded-full object-cover" />
                     ) : (
-                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#FDEBEA] text-rose-300">
-                            <PersonIcon size={38} />
+                        <div className="flex h-30 w-30 items-center justify-center rounded-full bg-[#ECE8E6] text-neutral-400">
+                            <PersonIcon size={42} />
                         </div>
                     )}
                     <span
                         aria-hidden="true"
-                        className="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-base leading-none shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
+                        className="absolute right-0 bottom-0 flex h-8 w-8 items-center justify-center rounded-full bg-[#D4625A] text-white shadow-[0_2px_8px_rgba(212,98,90,0.35)]"
                     >
-                        {TONE_BADGE_ICON[tone]}
+                        <HeartFilledIcon size={14} />
                     </span>
                 </div>
 
-                <div>
-                    <h1 className="text-xl font-bold text-neutral-900">{person.name}</h1>
-                    {birthdayDate ? (
-                        <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-bold text-neutral-900">{person.name}</h2>
+                    {isProfileIncomplete ? (
+                        <>
+                            <p className="text-sm text-neutral-400">Not filled yet</p>
+                            <Link
+                                href={`/persons/${id}/edit`}
+                                className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#D4625A] no-underline transition hover:text-[#c4564f]"
+                            >
+                                <CakeIcon size={16} />
+                                Add birthday
+                            </Link>
+                        </>
                     ) : (
-                        <Link href={`/persons/${id}/edit`} className="text-sm font-semibold text-rose-400 no-underline">
-                            🎉 Add birthday
-                        </Link>
+                        <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
                     )}
                 </div>
             </div>
@@ -166,15 +194,20 @@ export default function PersonDetailPage() {
             <div className="flex flex-wrap items-center justify-center gap-2">
                 {TABS.map((tab) => {
                     const isActive = tab.id === activeTab;
+                    const TabIcon = tab.Icon;
+
                     return (
                         <button
                             key={tab.id}
                             type="button"
                             onClick={() => setActiveTab(tab.id)}
-                            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                                isActive ? 'bg-rose-400 text-white' : 'bg-white text-neutral-500 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
+                            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                                isActive
+                                    ? 'bg-[#D4625A] text-white shadow-[0_4px_14px_rgba(212,98,90,0.24)]'
+                                    : 'border border-[#F0E8E5] bg-white text-neutral-500 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
                             }`}
                         >
+                            <TabIcon size={14} />
                             {tab.label}
                         </button>
                     );
@@ -182,30 +215,20 @@ export default function PersonDetailPage() {
             </div>
 
             <div>
-                {(activeTab === 'notes' || activeTab === 'wishlist') && isProfileIncomplete ? (
-                    <div className="flex flex-col items-center gap-3 rounded-2xl bg-white px-6 py-10 text-center shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-                        <NotebookIcon size={44} />
-                        <p className="text-sm font-bold text-neutral-800">No information yet.</p>
-                        <p className="text-xs text-neutral-400">
-                            Complete their profile first to start saving notes, wishlist, and special moments.
-                        </p>
-                        <Link
-                            href={`/persons/${id}/edit`}
-                            className="mt-1 rounded-full bg-rose-400 px-5 py-2 text-xs font-semibold text-white no-underline transition hover:bg-rose-500"
-                        >
-                            Complete Profile
-                        </Link>
+                {activeTab === 'notes' ? (
+                    <PersonNotesTab personId={id} person={person} isProfileIncomplete={isProfileIncomplete} />
+                ) : null}
+                {activeTab === 'wishlist' && isProfileIncomplete ? (
+                    <ProfileEmptyState personId={id} />
+                ) : activeTab === 'wishlist' ? (
+                    <PersonWishlistTab personId={id} />
+                ) : null}
+                {activeTab === 'ideas' ? (
+                    <div className="flex flex-col items-center gap-3 rounded-3xl bg-white px-6 py-10 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <GiftIdeasIcon size={44} />
+                        <p className="text-sm font-bold text-neutral-800">Gift ideas coming soon.</p>
+                        <p className="text-xs text-neutral-400">We&apos;re working on AI-powered gift suggestions.</p>
                     </div>
-                ) : (
-                    <>
-                        {activeTab === 'notes' ? <PersonNotesTab personId={id} /> : null}
-                        {activeTab === 'wishlist' ? <PersonWishlistTab personId={id} /> : null}
-                    </>
-                )}
-                {activeTab === 'ideas' || activeTab === 'moments' ? (
-                    <p className="rounded-xl bg-white px-3 py-10 text-center text-xs text-neutral-400 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-                        Coming soon.
-                    </p>
                 ) : null}
             </div>
         </div>

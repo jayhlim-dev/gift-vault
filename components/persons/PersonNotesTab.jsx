@@ -1,8 +1,11 @@
 'use client';
 
+import { AddNoteModal } from 'components/persons/AddNoteModal';
+import { NotebookIcon } from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+import Link from 'next/link';
 import { useState } from 'react';
 
 function TrashIcon() {
@@ -20,38 +23,14 @@ function TrashIcon() {
     );
 }
 
-export function PersonNotesTab({ personId }) {
+export function PersonNotesTab({ personId, person, isProfileIncomplete = false }) {
     const { data: notes, isLoading, refetch } = useFirebaseCollection('notes', { personId });
     const { request } = useApiClient();
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [text, setText] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const sortedNotes = notes
         .slice()
         .sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
-
-    async function handleAddNote(event) {
-        event.preventDefault();
-        if (!text.trim()) {
-            setError('Note cannot be empty');
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError('');
-        try {
-            await request('/api/notes', { method: 'POST', body: { text: text.trim(), personId } });
-            setText('');
-            setIsFormOpen(false);
-            refetch();
-        } catch (err) {
-            setError(err.message || 'Failed to add note');
-        } finally {
-            setIsSubmitting(false);
-        }
-    }
 
     async function handleDeleteNote(noteId) {
         try {
@@ -63,70 +42,84 @@ export function PersonNotesTab({ personId }) {
     }
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-neutral-800">Notes</h2>
-                <button
-                    type="button"
-                    onClick={() => setIsFormOpen((open) => !open)}
-                    className="text-xs font-semibold text-rose-400 transition hover:text-rose-500"
-                >
-                    {isFormOpen ? 'Cancel' : '+ Add note'}
-                </button>
+        <>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between px-0.5">
+                    <h2 className="text-base font-bold text-neutral-900">Notes</h2>
+                    {!isProfileIncomplete ? (
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(true)}
+                            className="text-sm font-semibold text-[#D4625A] transition hover:text-[#c4564f]"
+                        >
+                            + Add note
+                        </button>
+                    ) : null}
+                </div>
+
+                {isLoading ? (
+                    <div className="rounded-3xl bg-white px-6 py-14 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <div className="mx-auto h-4 w-28 animate-pulse rounded-full bg-neutral-100" />
+                    </div>
+                ) : sortedNotes.length ? (
+                    <ul className="flex flex-col gap-2">
+                        {sortedNotes.map((note) => (
+                            <li
+                                key={note.id}
+                                className="flex items-start justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
+                            >
+                                <div className="min-w-0 flex-1">
+                                    {note.isPinned ? (
+                                        <span className="mb-1 inline-block rounded-full bg-[#FDEBEA] px-2 py-0.5 text-2xs font-semibold text-[#D4625A]">
+                                            Pinned
+                                        </span>
+                                    ) : null}
+                                    <p className="text-sm text-neutral-800">{note.text}</p>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                    <span className="text-2xs whitespace-nowrap text-neutral-400">{formatRelativeTime(note.createdAt)}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDeleteNote(note.id)}
+                                        aria-label="Delete note"
+                                        className="text-neutral-300 transition hover:text-[#D4625A]"
+                                    >
+                                        <TrashIcon />
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                ) : isProfileIncomplete ? (
+                    <div className="flex flex-col items-center gap-5 rounded-3xl bg-white px-8 py-12 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <NotebookIcon size={64} />
+                        <div className="flex flex-col gap-2.5">
+                            <p className="text-lg font-bold text-neutral-900">No information yet.</p>
+                            <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
+                                Complete the profile first to start saving notes, wishlist, and special moments.
+                            </p>
+                        </div>
+                        <Link
+                            href={`/persons/${personId}/edit`}
+                            className="mt-1 w-full rounded-full bg-[#D4625A] px-5 py-3.5 text-sm font-semibold text-white no-underline shadow-[0_4px_14px_rgba(212,98,90,0.28)] transition hover:bg-[#c4564f]"
+                        >
+                            Complete Profile
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="rounded-3xl bg-white px-6 py-14 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <p className="text-sm text-neutral-400">No notes yet.</p>
+                    </div>
+                )}
             </div>
 
-            {isFormOpen ? (
-                <form onSubmit={handleAddNote} className="flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-                    <textarea
-                        value={text}
-                        onChange={(event) => setText(event.target.value)}
-                        placeholder="e.g. Loves matcha lattes"
-                        rows={2}
-                        className="resize-none rounded-lg border border-[#F2E9E6] px-3 py-2 text-sm text-neutral-900 focus:border-rose-300 focus:outline-none"
-                    />
-                    {error ? <p className="text-xs font-medium text-rose-500">{error}</p> : null}
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="self-end rounded-lg bg-rose-400 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-500 disabled:opacity-60"
-                    >
-                        {isSubmitting ? 'Saving…' : 'Save note'}
-                    </button>
-                </form>
+            {isModalOpen && person ? (
+                <AddNoteModal
+                    person={person}
+                    onClose={() => setIsModalOpen(false)}
+                    onSaved={() => refetch()}
+                />
             ) : null}
-
-            {isLoading ? (
-                <div className="flex flex-col gap-2">
-                    <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-100" />
-                    <div className="h-12 w-full animate-pulse rounded-xl bg-neutral-100" />
-                </div>
-            ) : sortedNotes.length ? (
-                <ul className="flex flex-col gap-2">
-                    {sortedNotes.map((note) => (
-                        <li
-                            key={note.id}
-                            className="flex items-start justify-between gap-3 rounded-xl bg-white px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
-                        >
-                            <p className="min-w-0 flex-1 text-sm text-neutral-800">{note.text}</p>
-                            <div className="flex shrink-0 items-center gap-2">
-                                <span className="text-2xs whitespace-nowrap text-neutral-400">{formatRelativeTime(note.createdAt)}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteNote(note.id)}
-                                    aria-label="Delete note"
-                                    className="text-neutral-300 transition hover:text-rose-400"
-                                >
-                                    <TrashIcon />
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p className="rounded-xl bg-white px-3 py-6 text-center text-xs text-neutral-400 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-                    No notes yet.
-                </p>
-            )}
-        </div>
+        </>
     );
 }

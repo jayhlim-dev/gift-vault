@@ -114,3 +114,56 @@ export function NotebookIcon({ size = 44 }) {
         </svg>
     );
 }
+
+export function GiftIdeasIcon({ size = 16 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <rect x="4" y="9" width="16" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
+            <path d="M4 9h16M12 9v11" stroke="currentColor" strokeWidth="1.6" />
+            <path
+                d="M12 9S9.5 4.5 7 5.5 6 9 12 9zM12 9s2.5-4.5 5-3.5S17 9 12 9z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinejoin="round"
+            />
+        </svg>
+    );
+}
+
+export function NotesTabIcon({ size = 16 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <rect x="5" y="3.5" width="14" height="17" rx="2" stroke="currentColor" strokeWidth="1.6" fill="none" />
+            <path d="M9 8.5h6M9 12h6M9 15.5h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M15 3.5v4a1 1 0 001 1h3" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+export function CakeIcon({ size = 16 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path
+                d="M6 11h12v7a2 2 0 01-2 2H8a2 2 0 01-2-2v-7z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinejoin="round"
+            />
+            <path d="M6 11c0-2 1.5-3.5 3-3.5S12 9 12 9s1.5-1.5 3-1.5S18 9 18 11" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+            <path d="M9 7V5.5M12 6.5V5M15 7V5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+export function HeartFilledIcon({ size = 12 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path
+                d="M12 20.5c-.3 0-.6-.1-.8-.3l-6-5.7A4.9 4.9 0 014 7.4 5.2 5.2 0 019.1 6c1.2 0 2.3.5 2.9 1.3A4 4 0 0114.9 6 5.2 5.2 0 0120 7.4c1.3 2 1 4.8-1.2 7l-6 5.8c-.2.2-.5.3-.8.3z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}

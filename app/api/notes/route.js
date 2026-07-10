@@ -21,6 +21,8 @@ export async function POST(request) {
         const docRef = await db.collection('notes').add({
             text,
             category: body.category || '',
+            noteDate: body.noteDate || '',
+            isPinned: Boolean(body.isPinned),
             personId: body.personId || '',
             userID: user.uid,
             createdAt: new Date().toISOString()

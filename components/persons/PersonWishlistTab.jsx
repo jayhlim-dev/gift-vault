@@ -85,45 +85,45 @@ export function PersonWishlistTab({ personId }) {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-neutral-800">Wishlist</h2>
+            <div className="flex items-center justify-between px-0.5">
+                <h2 className="text-base font-bold text-neutral-900">Wishlist</h2>
                 <button
                     type="button"
                     onClick={() => setIsFormOpen((open) => !open)}
-                    className="text-xs font-semibold text-rose-400 transition hover:text-rose-500"
+                    className="text-sm font-semibold text-[#D4625A] transition hover:text-[#c4564f]"
                 >
                     {isFormOpen ? 'Cancel' : '+ Add item'}
                 </button>
             </div>
 
             {isFormOpen ? (
-                <form onSubmit={handleAddItem} className="flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+                <form onSubmit={handleAddItem} className="flex flex-col gap-2 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                     <input
                         type="text"
                         value={form.title}
                         onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                         placeholder="e.g. iPhone 15 Pro"
-                        className="rounded-lg border border-[#F2E9E6] px-3 py-2 text-sm text-neutral-900 focus:border-rose-300 focus:outline-none"
+                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
                     />
                     <input
                         type="text"
                         value={form.price}
                         onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
                         placeholder="Price (optional)"
-                        className="rounded-lg border border-[#F2E9E6] px-3 py-2 text-sm text-neutral-900 focus:border-rose-300 focus:outline-none"
+                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
                     />
                     <input
                         type="url"
                         value={form.url}
                         onChange={(event) => setForm((prev) => ({ ...prev, url: event.target.value }))}
                         placeholder="Link (optional)"
-                        className="rounded-lg border border-[#F2E9E6] px-3 py-2 text-sm text-neutral-900 focus:border-rose-300 focus:outline-none"
+                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
                     />
-                    {error ? <p className="text-xs font-medium text-rose-500">{error}</p> : null}
+                    {error ? <p className="text-xs font-medium text-[#D4625A]">{error}</p> : null}
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="self-end rounded-lg bg-rose-400 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-500 disabled:opacity-60"
+                        className="self-end rounded-full bg-[#D4625A] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#c4564f] disabled:opacity-60"
                     >
                         {isSubmitting ? 'Saving…' : 'Save item'}
                     </button>
@@ -131,16 +131,15 @@ export function PersonWishlistTab({ personId }) {
             ) : null}
 
             {isLoading ? (
-                <div className="flex flex-col gap-2">
-                    <div className="h-14 w-full animate-pulse rounded-xl bg-neutral-100" />
-                    <div className="h-14 w-full animate-pulse rounded-xl bg-neutral-100" />
+                <div className="rounded-3xl bg-white px-6 py-14 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                    <div className="mx-auto h-4 w-36 animate-pulse rounded-full bg-neutral-100" />
                 </div>
             ) : sortedWishlists.length ? (
                 <ul className="flex flex-col gap-2">
                     {sortedWishlists.map((item) => (
                         <li
                             key={item.id}
-                            className="flex items-center gap-3 rounded-xl bg-white px-3 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+                            className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
                         >
                             {item.imageURL ? (
                                 <img src={item.imageURL} alt={item.title} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
@@ -159,7 +158,7 @@ export function PersonWishlistTab({ personId }) {
                                     type="button"
                                     onClick={() => handleDeleteItem(item.id)}
                                     aria-label="Delete wishlist item"
-                                    className="text-neutral-300 transition hover:text-rose-400"
+                                    className="text-neutral-300 transition hover:text-[#D4625A]"
                                 >
                                     <TrashIcon />
                                 </button>
@@ -168,9 +167,9 @@ export function PersonWishlistTab({ personId }) {
                     ))}
                 </ul>
             ) : (
-                <p className="rounded-xl bg-white px-3 py-6 text-center text-xs text-neutral-400 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-                    No wishlist items yet.
-                </p>
+                <div className="rounded-3xl bg-white px-6 py-14 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                    <p className="text-sm text-neutral-400">No wishlist items yet.</p>
+                </div>
             )}
         </div>
     );

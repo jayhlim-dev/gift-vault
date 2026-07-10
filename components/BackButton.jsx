@@ -2,10 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 
-export function BackButton({ fallbackHref = '/', className = '' }) {
+export function BackButton({ fallbackHref = '/', className = '', onClick }) {
     const router = useRouter();
 
     function handleClick() {
+        if (onClick) {
+            onClick();
+            return;
+        }
+
         if (typeof window !== 'undefined' && window.history.length > 1) {
             router.back();
         } else {

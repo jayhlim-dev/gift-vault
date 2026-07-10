@@ -1,14 +1,21 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
+
 export function Footer() {
+    const pathname = usePathname();
+    const isPersonDetailPage = /^\/persons\/[^/]+$/.test(pathname);
+
     const navItems = [
-        { label: 'Home', isActive: true, icon: 'home' },
-        { label: 'People', isActive: false, icon: 'people' },
-        { label: 'Reminders', isActive: false, icon: 'alarm' },
-        { label: 'Wishlist', isActive: false, icon: 'heart' },
-        { label: 'Profile', isActive: false, icon: 'profile' }
+        { label: 'Home', icon: 'home', isActive: pathname === '/' },
+        { label: 'People', icon: 'people', isActive: isPersonDetailPage },
+        { label: 'Reminders', icon: 'alarm', isActive: false },
+        { label: 'Wishlist', icon: 'heart', isActive: false },
+        { label: 'Profile', icon: 'profile', isActive: false }
     ];
 
     function renderIcon(icon, isActive) {
-        const iconClass = `block shrink-0 ${isActive ? 'text-rose-400' : 'text-neutral-400'}`;
+        const iconClass = `block shrink-0 ${isActive ? 'text-[#D4625A]' : 'text-neutral-400'}`;
         const iconSize = '26';
         if (icon === 'home') {
             return (
@@ -97,11 +104,11 @@ export function Footer() {
         <footer className="pointer-events-none fixed inset-x-0 bottom-5 z-50 px-6">
             <nav
                 aria-label="Bottom navigation"
-                className="pointer-events-auto w-full rounded-3xl bg-white px-3 py-2 shadow-[0_-3px_16px_rgba(30,30,30,0.08)] border border-[#F1E8E3]/50"
+                className="pointer-events-auto mx-auto w-full max-w-sm rounded-3xl border border-[#F1E8E3]/50 bg-white px-3 py-2 shadow-[0_-3px_16px_rgba(30,30,30,0.08)]"
             >
-                <ul className="m-0 grid list-none grid-cols-5 p-0 gap-1">
+                <ul className="m-0 grid list-none grid-cols-5 gap-1 p-0">
                     {navItems.map((item) => (
-                        <li key={item.label} className="w-full items-center justify-center flex">
+                        <li key={item.label} className="flex w-full items-center justify-center">
                             <button
                                 type="button"
                                 className={`flex w-10 flex-col items-center justify-center gap-1 rounded-xl border py-1.5 ${
@@ -110,11 +117,9 @@ export function Footer() {
                                         : 'border-transparent bg-transparent'
                                 }`}
                                 aria-current={item.isActive ? 'page' : undefined}
+                                aria-label={item.label}
                             >
                                 {renderIcon(item.icon, item.isActive)}
-                                {/* <span className={`text-xs font-semibold ${item.isActive ? 'text-rose-400' : 'text-neutral-500'}`}>
-                                    {item.label}
-                                </span> */}
                             </button>
                         </li>
                     ))}
