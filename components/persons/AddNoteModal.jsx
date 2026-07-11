@@ -1,18 +1,13 @@
 'use client';
 
 import { BackButton } from 'components/BackButton';
+import { ConfirmDialog } from 'components/ConfirmDialog';
 import { BirthdayPicker } from 'components/persons/BirthdayPicker';
-import { PersonIcon, PlusIcon } from 'components/persons/PersonIcons';
+import { PersonIcon } from 'components/persons/PersonIcons';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { useLoading } from 'lib/LoadingContext';
+import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
 import { useEffect, useState } from 'react';
-
-const QUICK_TAGS = [
-    { id: 'gift-ideas', label: 'Gift Ideas', className: 'border-[#D6E8F7] bg-[#EDF5FC] text-[#4A7FA5]' },
-    { id: 'favorites', label: 'Favorites', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' },
-    { id: 'size', label: 'Size', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' },
-    { id: 'allergy', label: 'Allergy', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' }
-];
 
 const noteContentClassName =
     'w-full rounded-3xl border border-[#F0E8E5] bg-white px-5 py-4 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 shadow-[0_4px_24px_rgba(0,0,0,0.06)] focus:border-rose-300 focus:outline-none disabled:opacity-60';
@@ -38,16 +33,17 @@ function todayIsoDate() {
     return `${today.getFullYear()}-${month}-${day}`;
 }
 
-export function AddNoteModal({ person, onClose, onSaved }) {
+export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted }) {
+    const isEditing = Boolean(note);
     const { request } = useApiClient();
     const { runWithLoading } = useLoading();
-    const [text, setText] = useState('');
-    const [noteDate, setNoteDate] = useState(todayIsoDate);
-    const [isPinned, setIsPinned] = useState(false);
-    const [selectedTag, setSelectedTag] = useState('');
-    const [customTags, setCustomTags] = useState([]);
+    const [text, setText] = useState(note?.text || '');
+    const [noteDate, setNoteDate] = useState(note?.noteDate || todayIsoDate());
+    const [isPinned, setIsPinned] = useState(Boolean(note?.isPinned));
+    const [selectedTag, setSelectedTag] = useState(note?.category || DEFAULT_NOTE_TAG);
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         const previousOverflow = document.body.style.overflow;
@@ -71,20 +67,29 @@ export function AddNoteModal({ person, onClose, onSaved }) {
         try {
             await runWithLoading(
                 async () => {
-                    await request('/api/notes', {
-                        method: 'POST',
-                        body: {
-                            text: text.trim(),
-                            personId: person.id,
-                            category: selectedTag,
-                            noteDate,
-                            isPinned
-                        }
-                    });
+                    const body = {
+                        text: text.trim(),
+                        category: selectedTag,
+                        noteDate,
+                        isPinned
+                    };
+
+                    if (isEditing) {
+                        await request(`/api/notes/${note.id}`, { method: 'PATCH', body });
+                    } else {
+                        await request('/api/notes', {
+                            method: 'POST',
+                            body: {
+                                ...body,
+                                personId: person.id
+                            }
+                        });
+                    }
+
                     onSaved?.();
                     onClose();
                 },
-                { message: 'Saving note…' }
+                { message: isEditing ? 'Updating note…' : 'Saving note…' }
             );
         } catch (err) {
             setError(err.message || 'Failed to save note');
@@ -93,31 +98,42 @@ export function AddNoteModal({ person, onClose, onSaved }) {
         }
     }
 
-    function handleAddCustomTag() {
-        const label = window.prompt('Tag name');
-        if (!label?.trim()) {
+    function handleDeleteClick() {
+        if (!isEditing) {
             return;
         }
 
-        const id = label.trim().toLowerCase().replace(/\s+/g, '-');
-        const nextTag = {
-            id,
-            label: label.trim(),
-            className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600'
-        };
-
-        setCustomTags((current) => (current.some((tag) => tag.id === id) ? current : [...current, nextTag]));
-        setSelectedTag(id);
+        setShowDeleteConfirm(true);
     }
 
-    const allTags = [...QUICK_TAGS, ...customTags];
+    async function handleConfirmDelete() {
+        setIsSubmitting(true);
+        setError('');
+
+        try {
+            await runWithLoading(
+                async () => {
+                    await request(`/api/notes/${note.id}`, { method: 'DELETE' });
+                    setShowDeleteConfirm(false);
+                    onDeleted?.();
+                    onClose();
+                },
+                { message: 'Deleting note…' }
+            );
+        } catch (err) {
+            setError(err.message || 'Failed to delete note');
+            setShowDeleteConfirm(false);
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
 
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-[#FAF8F7]">
             <div className="mx-auto flex h-full w-full max-w-sm flex-col px-5 pt-4 pb-6">
                 <header className="relative mb-6 flex items-center justify-center py-1">
                     <BackButton onClick={onClose} className="absolute left-0 -ml-2" />
-                    <h1 className="text-base font-semibold text-neutral-800">Add Note</h1>
+                    <h1 className="text-base font-semibold text-neutral-800">{isEditing ? 'Edit Note' : 'Add Note'}</h1>
                     <button
                         type="button"
                         onClick={handleSubmit}
@@ -138,7 +154,7 @@ export function AddNoteModal({ person, onClose, onSaved }) {
                             </div>
                         )}
                         <div className="min-w-0 text-left">
-                            <p className="text-xs text-neutral-400">Adding note for</p>
+                            <p className="text-xs text-neutral-400">{isEditing ? 'Editing note for' : 'Adding note for'}</p>
                             <p className="truncate text-sm font-bold text-neutral-900">{person.name}</p>
                         </div>
                     </div>
@@ -154,6 +170,37 @@ export function AddNoteModal({ person, onClose, onSaved }) {
                             className={`${noteContentClassName} resize-none`}
                         />
                     </label>
+
+                    <div className="flex flex-col gap-2.5">
+                        <span className="text-sm font-semibold text-neutral-800">Tags</span>
+                        <div className="flex flex-wrap gap-2">
+                            {NOTE_TAGS.map((tag) => {
+                                const isActive = selectedTag === tag.id;
+                                return (
+                                    <button
+                                        key={tag.id}
+                                        type="button"
+                                        onClick={() => {
+                                            if (isActive) {
+                                                if (tag.id !== DEFAULT_NOTE_TAG) {
+                                                    setSelectedTag(DEFAULT_NOTE_TAG);
+                                                }
+                                                return;
+                                            }
+
+                                            setSelectedTag(tag.id);
+                                        }}
+                                        disabled={isSubmitting}
+                                        className={`rounded-full border px-4 py-2 text-xs font-semibold transition disabled:opacity-60 ${
+                                            isActive ? NOTE_TAG_ACTIVE_CLASS : tag.className
+                                        }`}
+                                    >
+                                        {tag.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
 
                     {/* <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
                         Date
@@ -193,51 +240,39 @@ export function AddNoteModal({ person, onClose, onSaved }) {
                         </div>
                     </div>
 
-                    {/* <div className="flex flex-col gap-2.5">
-                        <span className="text-sm font-semibold text-neutral-800">Quick Tags</span>
-                        <div className="flex flex-wrap gap-2">
-                            {allTags.map((tag) => {
-                                const isActive = selectedTag === tag.id;
-                                return (
-                                    <button
-                                        key={tag.id}
-                                        type="button"
-                                        onClick={() => setSelectedTag(isActive ? '' : tag.id)}
-                                        disabled={isSubmitting}
-                                        className={`rounded-full border px-4 py-2 text-xs font-semibold transition disabled:opacity-60 ${
-                                            isActive
-                                                ? 'border-[#D4625A] bg-[#FDF5F4] text-[#D4625A]'
-                                                : tag.className
-                                        }`}
-                                    >
-                                        {tag.label}
-                                    </button>
-                                );
-                            })}
-                            <button
-                                type="button"
-                                onClick={handleAddCustomTag}
-                                disabled={isSubmitting}
-                                aria-label="Add custom tag"
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-[#F6D9D6] bg-[#FDEBEA] text-[#D4625A] transition hover:bg-[#FDF5F4] disabled:opacity-60"
-                            >
-                                <PlusIcon size={16} />
-                            </button>
-                        </div>
-                    </div> */}
-
                     {error ? <p className="text-xs font-medium text-[#D4625A]">{error}</p> : null}
+
+                    {isEditing ? (
+                        <button
+                            type="button"
+                            onClick={handleDeleteClick}
+                            disabled={isSubmitting}
+                            className="text-sm font-semibold text-[#D4625A] transition hover:text-[#c4564f] disabled:opacity-50"
+                        >
+                            Delete Note
+                        </button>
+                    ) : null}
                 </form>
 
                 <button
                     type="submit"
                     form="add-note-form"
                     disabled={isSubmitting}
-                    className="mt-auto w-full rounded-full bg-[#D4625A] px-4 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(212,98,90,0.28)] transition hover:bg-[#c4564f] disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`w-full rounded-full px-4 py-3.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(212,98,90,0.28)] transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isEditing ? 'mt-3 bg-[#D4625A] hover:bg-[#c4564f]' : 'mt-auto bg-[#D4625A] hover:bg-[#c4564f]'
+                    }`}
                 >
-                    {isSubmitting ? 'Saving…' : 'Save Note'}
+                    {isSubmitting ? 'Saving…' : isEditing ? 'Update Note' : 'Save Note'}
                 </button>
             </div>
+
+            <ConfirmDialog
+                open={showDeleteConfirm}
+                message="Are you sure you want to delete this data?"
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+                isLoading={isSubmitting}
+            />
         </div>
     );
 }

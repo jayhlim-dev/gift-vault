@@ -1,4 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
+import { validateHttpsUrl } from 'lib/gift-vault-utils';
 import { getDb } from 'lib/firebase-admin';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
@@ -16,14 +17,21 @@ export async function POST(request) {
         return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
+    const { url, error: urlError } = validateHttpsUrl(body.url);
+    if (urlError) {
+        return NextResponse.json({ error: urlError }, { status: 400 });
+    }
+
     try {
         const db = getDb();
         const docRef = await db.collection('wishlists').add({
             title,
             description: body.description || '',
-            url: body.url || '',
+            url,
             price: body.price || '',
             imageURL: body.imageURL || '',
+            category: body.category || '',
+            iconId: body.iconId || 'gift',
             status: body.status || 'pending',
             personId: body.personId || '',
             userID: user.uid,

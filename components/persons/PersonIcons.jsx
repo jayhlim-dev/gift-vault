@@ -167,3 +167,32 @@ export function HeartFilledIcon({ size = 12 }) {
         </svg>
     );
 }
+
+export function PencilIcon({ size = 16 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path
+                d="M4 18.5V20h1.5L17 8.5 15.5 7 4 18.5zM19.7 6.8a1 1 0 000-1.4l-1.1-1.1a1 1 0 00-1.4 0l-.9.9 2.5 2.5.9-.9z"
+                fill="currentColor"
+            />
+        </svg>
+    );
+}
+
+export function NoteFoodIcon({ size = 18 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path d="M8 4v8M6 4v5M10 4v5M8 12v8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M16 4v16M18 8v8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+export function NoteHobbyIcon({ size = 18 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.6" fill="none" />
+            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+    );
+}

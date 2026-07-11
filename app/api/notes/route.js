@@ -1,4 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
+import { DEFAULT_NOTE_TAG } from 'lib/note-tags';
 import { getDb } from 'lib/firebase-admin';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
@@ -20,7 +21,7 @@ export async function POST(request) {
         const db = getDb();
         const docRef = await db.collection('notes').add({
             text,
-            category: body.category || '',
+            category: body.category || DEFAULT_NOTE_TAG,
             noteDate: body.noteDate || '',
             isPinned: Boolean(body.isPinned),
             personId: body.personId || '',

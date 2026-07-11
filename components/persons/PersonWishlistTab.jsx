@@ -1,17 +1,34 @@
 'use client';
 
-import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
-import { useApiClient } from 'lib/hooks/useApiClient';
+import { AddWishlistModal } from 'components/persons/AddWishlistModal';
+import { WishlistIcon } from 'components/persons/WishlistIcons';
+import { formatRelativeTime, formatIdrDisplay, toDate } from 'lib/gift-vault-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
-import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import WishlistEmptyImage from 'public/images/assets/gift-ill.png';
+import { useEffect, useRef, useState } from 'react';
 
-function TrashIcon() {
+const WISHLIST_CATEGORY_LABELS = {
+    want: 'Want',
+    need: 'Need',
+    hobby: 'Hobby',
+    gift: 'Gift'
+};
+
+function ChevronIcon({ expanded = false, size = 16 }) {
     return (
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <svg
+            viewBox="0 0 24 24"
+            width={size}
+            height={size}
+            aria-hidden="true"
+            className={`transition-transform ${expanded ? 'rotate-180' : ''}`}
+        >
             <path
-                d="M5 7h14M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0-1 13a1 1 0 01-1 1H8a1 1 0 01-1-1L6 7h12z"
+                d="M6 9l6 6 6-6"
                 stroke="currentColor"
-                strokeWidth="1.6"
+                strokeWidth="1.8"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -20,157 +37,188 @@ function TrashIcon() {
     );
 }
 
-function GiftIcon() {
+function getWishlistSubtitle(item) {
+    const parts = [];
+
+    if (item.price) {
+        parts.push(formatIdrDisplay(item.price));
+    }
+
+    const categoryLabel = WISHLIST_CATEGORY_LABELS[item.category] || item.category;
+    if (categoryLabel) {
+        parts.push(categoryLabel);
+    }
+
+    const time = formatRelativeTime(item.createdAt);
+    if (time) {
+        parts.push(time);
+    }
+
+    return parts.join(' · ');
+}
+
+function WishlistCard({ item, onEdit }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [canExpand, setCanExpand] = useState(false);
+    const titleRef = useRef(null);
+
+    useEffect(() => {
+        const element = titleRef.current;
+        if (!element || isExpanded) {
+            return;
+        }
+
+        setCanExpand(element.scrollWidth > element.clientWidth || item.title.includes('\n') || Boolean(item.url));
+    }, [item.title, item.url, isExpanded]);
+
+    function handleToggleExpand(event) {
+        event.stopPropagation();
+        setIsExpanded((value) => !value);
+    }
+
+    const showExpandToggle = canExpand || isExpanded;
+
     return (
-        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="text-rose-300">
-            <rect x="4" y="9" width="16" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.6" fill="none" />
-            <path d="M4 9h16M12 9v11" stroke="currentColor" strokeWidth="1.6" />
-            <path
-                d="M12 9S9.5 4.5 7 5.5 6 9 12 9zM12 9s2.5-4.5 5-3.5S17 9 12 9z"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                fill="none"
-                strokeLinejoin="round"
-            />
-        </svg>
+        <li
+            className={`rounded-2xl px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition ${
+                isExpanded ? 'bg-[#FFFCFB]' : 'bg-white'
+            }`}
+        >
+            <div className="flex items-center gap-3">
+                {item.imageURL ? (
+                    <img src={item.imageURL} alt={item.title} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] text-[#D4625A]">
+                        <WishlistIcon id={item.iconId || 'gift'} size={20} />
+                    </div>
+                )}
+                <button
+                    type="button"
+                    onClick={() => onEdit(item)}
+                    className="min-w-0 flex-1 cursor-pointer text-left transition hover:opacity-80"
+                >
+                    <p
+                        ref={titleRef}
+                        className={`text-sm font-semibold text-neutral-800 ${
+                            isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
+                        }`}
+                    >
+                        {item.title}
+                    </p>
+                    <p className="mt-0.5 text-2xs text-neutral-500">{getWishlistSubtitle(item)}</p>
+                    {isExpanded && item.url ? (
+                        <span className="mt-1.5 block truncate text-2xs font-medium text-[#D4625A]">{item.url}</span>
+                    ) : null}
+                </button>
+                {showExpandToggle ? (
+                    <button
+                        type="button"
+                        onClick={handleToggleExpand}
+                        aria-label={isExpanded ? 'Collapse wishlist item' : 'Expand wishlist item'}
+                        aria-expanded={isExpanded}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center self-center rounded-full text-neutral-400 transition hover:bg-[#FDEBEA] hover:text-[#D4625A]"
+                    >
+                        <ChevronIcon expanded={isExpanded} size={20} />
+                    </button>
+                ) : null}
+            </div>
+        </li>
     );
 }
 
-const emptyFormState = { title: '', price: '', url: '' };
-
-export function PersonWishlistTab({ personId }) {
+export function PersonWishlistTab({ personId, person, isProfileIncomplete = false }) {
     const { data: wishlists, isLoading, refetch } = useFirebaseCollection('wishlists', { personId });
-    const { request } = useApiClient();
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [form, setForm] = useState(emptyFormState);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+
+    function openAddModal() {
+        setEditingItem(null);
+        setIsModalOpen(true);
+    }
+
+    function openEditModal(item) {
+        setEditingItem(item);
+        setIsModalOpen(true);
+    }
+
+    function closeModal() {
+        setIsModalOpen(false);
+        setEditingItem(null);
+    }
 
     const sortedWishlists = wishlists
         .slice()
         .sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
 
-    async function handleAddItem(event) {
-        event.preventDefault();
-        if (!form.title.trim()) {
-            setError('Title cannot be empty');
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError('');
-        try {
-            await request('/api/wishlists', {
-                method: 'POST',
-                body: { title: form.title.trim(), price: form.price.trim(), url: form.url.trim(), personId }
-            });
-            setForm(emptyFormState);
-            setIsFormOpen(false);
-            refetch();
-        } catch (err) {
-            setError(err.message || 'Failed to add wishlist item');
-        } finally {
-            setIsSubmitting(false);
-        }
-    }
-
-    async function handleDeleteItem(itemId) {
-        try {
-            await request(`/api/wishlists/${itemId}`, { method: 'DELETE' });
-            refetch();
-        } catch (err) {
-            console.error('[PersonWishlistTab] Failed to delete wishlist item:', err);
-        }
-    }
-
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between px-0.5">
-                <h2 className="text-base font-bold text-neutral-900">Wishlist</h2>
-                <button
-                    type="button"
-                    onClick={() => setIsFormOpen((open) => !open)}
-                    className="text-sm font-semibold text-[#D4625A] transition hover:text-[#c4564f]"
-                >
-                    {isFormOpen ? 'Cancel' : '+ Add item'}
-                </button>
+        <>
+            <div className="flex flex-col gap-4">
+             
+
+                {isLoading ? (
+                    <div className="rounded-3xl bg-white px-6 py-14 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <div className="mx-auto h-4 w-36 animate-pulse rounded-full bg-neutral-100" />
+                    </div>
+                ) : sortedWishlists.length ? (
+                    <ul className="flex flex-col gap-2">
+                        {sortedWishlists.map((item) => (
+                            <WishlistCard key={item.id} item={item} onEdit={openEditModal} />
+                        ))}
+                    </ul>
+                ) : isProfileIncomplete ? (
+                    <div className="flex flex-col items-center gap-5 rounded-3xl bg-white px-8 py-12 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <Image
+                            src={WishlistEmptyImage}
+                            alt=""
+                            className="h-32 w-auto object-contain"
+                            aria-hidden="true"
+                        />
+                        <div className="flex flex-col gap-2.5">
+                            <p className="text-lg font-bold text-neutral-900">No information yet.</p>
+                            <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
+                                Complete the profile first to start saving notes, wishlist, and special moments.
+                            </p>
+                        </div>
+                        <Link
+                            href={`/persons/${personId}/edit`}
+                            className="mt-1 w-full rounded-full bg-[#E37377] px-8 py-3.5 text-sm font-semibold text-white no-underline transition hover:bg-[#d9686d]"
+                        >
+                            Complete Profile
+                        </Link>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-4 rounded-3xl bg-white px-8 py-9 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                        <Image
+                            src={WishlistEmptyImage}
+                            alt=""
+                            className="h-32 w-auto object-contain"
+                            aria-hidden="true"
+                        />
+                        <p className="text-lg font-bold text-neutral-900">No wishlist items yet.</p>
+                        <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
+                            Save products and gift ideas they&apos;d love so you&apos;re ready for the next occasion.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={openAddModal}
+                            className="mt-1 w-full rounded-full bg-[#E37377] px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-[#d9686d]"
+                        >
+                            Add Item
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {isFormOpen ? (
-                <form onSubmit={handleAddItem} className="flex flex-col gap-2 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-                    <input
-                        type="text"
-                        value={form.title}
-                        onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                        placeholder="e.g. iPhone 15 Pro"
-                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
-                    />
-                    <input
-                        type="text"
-                        value={form.price}
-                        onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
-                        placeholder="Price (optional)"
-                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
-                    />
-                    <input
-                        type="url"
-                        value={form.url}
-                        onChange={(event) => setForm((prev) => ({ ...prev, url: event.target.value }))}
-                        placeholder="Link (optional)"
-                        className="rounded-2xl border border-[#F0E8E5] bg-[#FAF8F7] px-4 py-3 text-sm text-neutral-900 focus:border-rose-300 focus:bg-white focus:outline-none"
-                    />
-                    {error ? <p className="text-xs font-medium text-[#D4625A]">{error}</p> : null}
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="self-end rounded-full bg-[#D4625A] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#c4564f] disabled:opacity-60"
-                    >
-                        {isSubmitting ? 'Saving…' : 'Save item'}
-                    </button>
-                </form>
+            {isModalOpen && person ? (
+                <AddWishlistModal
+                    key={editingItem?.id ?? 'new'}
+                    person={person}
+                    item={editingItem}
+                    onClose={closeModal}
+                    onSaved={() => refetch()}
+                    onDeleted={() => refetch()}
+                />
             ) : null}
-
-            {isLoading ? (
-                <div className="rounded-3xl bg-white px-6 py-14 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-                    <div className="mx-auto h-4 w-36 animate-pulse rounded-full bg-neutral-100" />
-                </div>
-            ) : sortedWishlists.length ? (
-                <ul className="flex flex-col gap-2">
-                    {sortedWishlists.map((item) => (
-                        <li
-                            key={item.id}
-                            className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
-                        >
-                            {item.imageURL ? (
-                                <img src={item.imageURL} alt={item.title} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
-                            ) : (
-                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA]">
-                                    <GiftIcon />
-                                </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold text-neutral-800">{item.title}</p>
-                                {item.price ? <p className="text-2xs text-neutral-500">{item.price}</p> : null}
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                                <span className="text-2xs whitespace-nowrap text-neutral-400">{formatRelativeTime(item.createdAt)}</span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteItem(item.id)}
-                                    aria-label="Delete wishlist item"
-                                    className="text-neutral-300 transition hover:text-[#D4625A]"
-                                >
-                                    <TrashIcon />
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <div className="rounded-3xl bg-white px-6 py-14 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-                    <p className="text-sm text-neutral-400">No wishlist items yet.</p>
-                </div>
-            )}
-        </div>
+        </>
     );
 }

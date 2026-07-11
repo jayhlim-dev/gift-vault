@@ -6,8 +6,8 @@ import {
     GiftIdeasIcon,
     HeartFilledIcon,
     HeartIcon,
-    NotebookIcon,
     NotesTabIcon,
+    PencilIcon,
     PersonIcon
 } from 'components/persons/PersonIcons';
 import { PersonNotesTab } from 'components/persons/PersonNotesTab';
@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from 'react';
 const TABS = [
     { id: 'notes', label: 'Notes', Icon: NotesTabIcon },
     { id: 'wishlist', label: 'Wishlist', Icon: HeartIcon },
-    { id: 'ideas', label: 'Gift Ideas', Icon: GiftIdeasIcon }
+    // { id: 'ideas', label: 'Gift Ideas', Icon: GiftIdeasIcon }
 ];
 
 function MenuIcon() {
@@ -32,26 +32,6 @@ function MenuIcon() {
             <circle cx="12" cy="12" r="1.6" fill="currentColor" />
             <circle cx="19" cy="12" r="1.6" fill="currentColor" />
         </svg>
-    );
-}
-
-function ProfileEmptyState({ personId }) {
-    return (
-        <div className="flex flex-col items-center gap-5 rounded-3xl bg-white px-8 py-12 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
-            <NotebookIcon size={64} />
-            <div className="flex flex-col gap-2.5">
-                <p className="text-lg font-bold text-neutral-900">No information yet.</p>
-                <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
-                    Complete the profile first to start saving notes, wishlist, and special moments.
-                </p>
-            </div>
-            <Link
-                href={`/persons/${personId}/edit`}
-                className="mt-1 w-full rounded-full bg-[#D4625A] px-5 py-3.5 text-sm font-semibold text-white no-underline shadow-[0_4px_14px_rgba(212,98,90,0.28)] transition hover:bg-[#c4564f]"
-            >
-                Complete Profile
-            </Link>
-        </div>
     );
 }
 
@@ -119,7 +99,7 @@ export default function PersonDetailPage() {
     const isProfileIncomplete = !person.birthday;
 
     return (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 bg-[#FAF8F7] px-5 pt-4 pb-28">
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 bg-[#FAF8F7] pt-4 pb-28">
             <header className="relative flex items-center justify-center py-1">
                 <BackButton fallbackHref="/" className="absolute left-0 -ml-2" />
                 <h1 className="text-base font-semibold text-neutral-800">Person Detail</h1>
@@ -186,12 +166,25 @@ export default function PersonDetailPage() {
                             </Link>
                         </>
                     ) : (
-                        <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
+                        <>
+                            <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
+                            <Link
+                                href={`/persons/${id}/edit`}
+                                className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#D4625A] no-underline transition hover:text-[#c4564f]"
+                            >
+                                <PencilIcon size={14} />
+                                Edit Profile Detail
+                            </Link>
+                        </>
                     )}
                 </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
+            <div
+                role="tablist"
+                aria-label="Person sections"
+                className="flex rounded-2xl bg-white p-1 shadow-[0_2px_10px_rgba(0,0,0,0.04)]"
+            >
                 {TABS.map((tab) => {
                     const isActive = tab.id === activeTab;
                     const TabIcon = tab.Icon;
@@ -200,28 +193,28 @@ export default function PersonDetailPage() {
                         <button
                             key={tab.id}
                             type="button"
+                            role="tab"
+                            aria-selected={isActive}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                            className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition ${
                                 isActive
                                     ? 'bg-[#D4625A] text-white shadow-[0_4px_14px_rgba(212,98,90,0.24)]'
-                                    : 'border border-[#F0E8E5] bg-white text-neutral-500 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
+                                    : 'text-neutral-500 hover:text-neutral-700'
                             }`}
                         >
                             <TabIcon size={14} />
-                            {tab.label}
+                            <span className="truncate">{tab.label}</span>
                         </button>
                     );
                 })}
             </div>
 
-            <div>
+            <div role="tabpanel">
                 {activeTab === 'notes' ? (
                     <PersonNotesTab personId={id} person={person} isProfileIncomplete={isProfileIncomplete} />
                 ) : null}
-                {activeTab === 'wishlist' && isProfileIncomplete ? (
-                    <ProfileEmptyState personId={id} />
-                ) : activeTab === 'wishlist' ? (
-                    <PersonWishlistTab personId={id} />
+                {activeTab === 'wishlist' ? (
+                    <PersonWishlistTab personId={id} person={person} isProfileIncomplete={isProfileIncomplete} />
                 ) : null}
                 {activeTab === 'ideas' ? (
                     <div className="flex flex-col items-center gap-3 rounded-3xl bg-white px-6 py-10 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
