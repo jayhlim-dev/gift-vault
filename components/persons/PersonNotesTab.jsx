@@ -5,6 +5,14 @@ import { NoteTagChip } from 'components/persons/NoteTagChip';
 import { GiftIdeasIcon, NoteFoodIcon, NoteHobbyIcon, NoteRestaurantIcon, NoteRoutineIcon, NoteSkincareIcon, NotesTabIcon, PlusIcon } from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
 import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
+import {
+    formatUrlForDisplay,
+    getNoteDisplayBody,
+    getNoteDisplayTitle,
+    isLegacyRestaurantNote,
+    isStructuredRestaurantNote,
+    noteHasRestaurantLinks
+} from 'lib/restaurant-note-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -162,6 +170,58 @@ function getNoteMetaLine(note) {
     return parts.join(' · ');
 }
 
+function RestaurantDetailLine({ label, value, linkable = false, clampLine = false }) {
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const isUrl = trimmed.startsWith('http://') || trimmed.startsWith('https://');
+    const displayValue = linkable && isUrl ? formatUrlForDisplay(trimmed) : trimmed;
+    const valueClassName = clampLine ? 'min-w-0 truncate' : 'min-w-0 break-all leading-relaxed';
+
+    return (
+        <div className="grid grid-cols-[4.75rem_minmax(0,1fr)] items-start gap-x-2 text-2xs">
+            <span className="pt-px font-semibold text-neutral-700">{label}</span>
+            {linkable && isUrl ? (
+                <a
+                    href={trimmed}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={trimmed}
+                    className={`${valueClassName} block font-medium text-[#D4625A] no-underline`}
+                    onClick={(event) => event.stopPropagation()}
+                >
+                    {displayValue}
+                </a>
+            ) : (
+                <span className={`${valueClassName} text-neutral-600`}>{displayValue}</span>
+            )}
+        </div>
+    );
+}
+
+function RestaurantNoteDetails({ note }) {
+    if (!isStructuredRestaurantNote(note)) {
+        return null;
+    }
+
+    const hasNotes = Boolean(note.text?.trim());
+
+    return (
+        <div className="mt-3 flex flex-col gap-2 border-t border-[#F0E8E5] pt-3">
+            <RestaurantDetailLine label="Location" value={note.location} linkable clampLine />
+            <RestaurantDetailLine label="Menu" value={note.menuUrl} linkable clampLine />
+            <RestaurantDetailLine label="Instagram" value={note.instagramUrl} linkable clampLine />
+            {hasNotes ? (
+                <div className="mt-1 border-t border-[#F0E8E5] pt-2">
+                    <RestaurantDetailLine label="Notes" value={note.text} />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 function NoteCard({ note, onEdit }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [canExpand, setCanExpand] = useState(false);
@@ -170,6 +230,10 @@ function NoteCard({ note, onEdit }) {
     const meta = getNoteMeta(category);
     const Icon = meta.icon;
     const metaLine = getNoteMetaLine(note);
+    const displayTitle = getNoteDisplayTitle(note);
+    const displayPreview = getNoteDisplayBody(note);
+    const isStructuredRestaurant = isStructuredRestaurantNote(note);
+    const isLegacyRestaurant = isLegacyRestaurantNote(note);
 
     useEffect(() => {
         const element = textRef.current;
@@ -177,8 +241,12 @@ function NoteCard({ note, onEdit }) {
             return;
         }
 
-        setCanExpand(element.scrollWidth > element.clientWidth || note.text.includes('\n'));
-    }, [note.text, isExpanded]);
+        const titleOverflow = element.scrollWidth > element.clientWidth;
+        const legacyOverflow = isLegacyRestaurant && (note.text.includes('\n') || titleOverflow);
+        const structuredOverflow = isStructuredRestaurant && Boolean(displayPreview || noteHasRestaurantLinks(note) || note.text?.includes('\n'));
+
+        setCanExpand(titleOverflow || legacyOverflow || structuredOverflow);
+    }, [displayPreview, displayTitle, isExpanded, isLegacyRestaurant, isStructuredRestaurant, note.text]);
 
     function handleToggleExpand(event) {
         event.stopPropagation();
@@ -208,8 +276,11 @@ function NoteCard({ note, onEdit }) {
                             isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
                         }`}
                     >
-                        {note.text}
+                        {isExpanded && isLegacyRestaurant ? note.text : displayTitle}
                     </p>
+                    {!isExpanded && displayPreview ? (
+                        <p className="mt-0.5 truncate text-2xs text-neutral-500">{displayPreview}</p>
+                    ) : null}
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                         <NoteTagChip label={meta.title} />
                         {metaLine ? <span className="text-2xs text-neutral-500">{metaLine}</span> : null}
@@ -227,6 +298,7 @@ function NoteCard({ note, onEdit }) {
                     </button>
                 ) : null}
             </div>
+            {isExpanded && isStructuredRestaurant ? <RestaurantNoteDetails note={note} /> : null}
         </li>
     );
 }

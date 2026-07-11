@@ -2,15 +2,24 @@
 
 import { BackButton } from 'components/BackButton';
 import { ConfirmDialog } from 'components/ConfirmDialog';
-import { BirthdayPicker } from 'components/persons/BirthdayPicker';
 import { PersonIcon } from 'components/persons/PersonIcons';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { useLoading } from 'lib/LoadingContext';
 import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
+import {
+    RESTAURANT_NOTE_TAG,
+    initRestaurantFieldsFromNote,
+    isLegacyRestaurantNote,
+    isStructuredRestaurantNote,
+    validateRestaurantNoteInput
+} from 'lib/restaurant-note-utils';
 import { useEffect, useState } from 'react';
 
 const noteContentClassName =
     'w-full rounded-3xl border border-[#F0E8E5] bg-white px-5 py-4 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 shadow-[0_4px_24px_rgba(0,0,0,0.06)] focus:border-rose-300 focus:outline-none disabled:opacity-60';
+
+const fieldClassName =
+    'w-full rounded-full border border-[#F0E8E5] bg-white px-5 py-3.5 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-rose-300 focus:outline-none disabled:opacity-60';
 
 function PinIcon({ size = 18 }) {
     return (
@@ -41,6 +50,12 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
     const [noteDate, setNoteDate] = useState(note?.noteDate || todayIsoDate());
     const [isPinned, setIsPinned] = useState(Boolean(note?.isPinned));
     const [selectedTag, setSelectedTag] = useState(note?.category || DEFAULT_NOTE_TAG);
+    const initialRestaurantFields = initRestaurantFieldsFromNote(note);
+    const [restaurantName, setRestaurantName] = useState(initialRestaurantFields.restaurantName);
+    const [location, setLocation] = useState(initialRestaurantFields.location);
+    const [menuUrl, setMenuUrl] = useState(initialRestaurantFields.menuUrl);
+    const [instagramUrl, setInstagramUrl] = useState(initialRestaurantFields.instagramUrl);
+    const [useStructuredRestaurant, setUseStructuredRestaurant] = useState(isStructuredRestaurantNote(note));
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -54,9 +69,29 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
         };
     }, []);
 
+    const isRestaurantTag = selectedTag === RESTAURANT_NOTE_TAG;
+    const showStructuredRestaurant =
+        isRestaurantTag && (!isEditing || isStructuredRestaurantNote(note) || useStructuredRestaurant);
+    const showLegacyRestaurantText =
+        isRestaurantTag && isEditing && isLegacyRestaurantNote(note) && !useStructuredRestaurant;
+    const showRegularNoteText = !isRestaurantTag || showLegacyRestaurantText;
+
     async function handleSubmit(event) {
         event?.preventDefault?.();
-        if (!text.trim()) {
+
+        if (showStructuredRestaurant) {
+            const validationError = validateRestaurantNoteInput({
+                restaurantName,
+                text,
+                menuUrl,
+                instagramUrl
+            });
+
+            if (validationError) {
+                setError(validationError);
+                return;
+            }
+        } else if (!text.trim()) {
             setError('Note content is required');
             return;
         }
@@ -73,6 +108,15 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                         noteDate,
                         isPinned
                     };
+
+                    if (showStructuredRestaurant) {
+                        Object.assign(body, {
+                            restaurantName: restaurantName.trim(),
+                            location: location.trim(),
+                            menuUrl: menuUrl.trim(),
+                            instagramUrl: instagramUrl.trim()
+                        });
+                    }
 
                     if (isEditing) {
                         await request(`/api/notes/${note.id}`, { method: 'PATCH', body });
@@ -159,18 +203,6 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                         </div>
                     </div>
 
-                    <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
-                        Note Content
-                        <textarea
-                            value={text}
-                            onChange={(event) => setText(event.target.value)}
-                            placeholder="Write details you want to remember (e.g. new favorite color, gift ideas, or important moments)..."
-                            rows={5}
-                            disabled={isSubmitting}
-                            className={`${noteContentClassName} resize-none`}
-                        />
-                    </label>
-
                     <div className="flex flex-col gap-2.5">
                         <span className="text-sm font-semibold text-neutral-800">Tags</span>
                         <div className="flex flex-wrap gap-2">
@@ -201,6 +233,95 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                             })}
                         </div>
                     </div>
+
+                    {showStructuredRestaurant ? (
+                        <div className="flex flex-col gap-4">
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Restaurant Name
+                                <input
+                                    type="text"
+                                    value={restaurantName}
+                                    onChange={(event) => setRestaurantName(event.target.value)}
+                                    placeholder="e.g. Yialos Greek Mediterranean Restaurant"
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Location
+                                <input
+                                    type="text"
+                                    value={location}
+                                    onChange={(event) => setLocation(event.target.value)}
+                                    placeholder="Address or Google Maps link"
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Menu Link
+                                <input
+                                    type="url"
+                                    value={menuUrl}
+                                    onChange={(event) => setMenuUrl(event.target.value)}
+                                    placeholder="https://..."
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Instagram
+                                <input
+                                    type="url"
+                                    value={instagramUrl}
+                                    onChange={(event) => setInstagramUrl(event.target.value)}
+                                    placeholder="https://instagram.com/..."
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Personal Notes
+                                <textarea
+                                    value={text}
+                                    onChange={(event) => setText(event.target.value)}
+                                    placeholder="What they like to order, preferences, etc."
+                                    rows={4}
+                                    disabled={isSubmitting}
+                                    className={`${noteContentClassName} resize-none`}
+                                />
+                            </label>
+                        </div>
+                    ) : null}
+
+                    {showRegularNoteText ? (
+                        <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                            Note Content
+                            <textarea
+                                value={text}
+                                onChange={(event) => setText(event.target.value)}
+                                placeholder="Write details you want to remember (e.g. new favorite color, gift ideas, or important moments)..."
+                                rows={5}
+                                disabled={isSubmitting}
+                                className={`${noteContentClassName} resize-none`}
+                            />
+                        </label>
+                    ) : null}
+
+                    {showLegacyRestaurantText ? (
+                        <button
+                            type="button"
+                            onClick={() => setUseStructuredRestaurant(true)}
+                            disabled={isSubmitting}
+                            className="text-left text-xs font-semibold text-[#D4625A] transition hover:text-[#c4564f] disabled:opacity-50"
+                        >
+                            Switch to structured restaurant fields
+                        </button>
+                    ) : null}
 
                     {/* <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
                         Date

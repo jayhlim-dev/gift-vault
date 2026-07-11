@@ -1,5 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
-import { DEFAULT_NOTE_TAG } from 'lib/note-tags';
+import { buildNoteCreatePayload } from 'lib/note-api-utils';
 import { getDb } from 'lib/firebase-admin';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
@@ -11,20 +11,16 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const text = (body.text || '').trim();
+    const { payload, error } = buildNoteCreatePayload(body);
 
-    if (!text) {
-        return NextResponse.json({ error: 'Note text is required' }, { status: 400 });
+    if (error) {
+        return NextResponse.json({ error }, { status: 400 });
     }
 
     try {
         const db = getDb();
         const docRef = await db.collection('notes').add({
-            text,
-            category: body.category || DEFAULT_NOTE_TAG,
-            noteDate: body.noteDate || '',
-            isPinned: Boolean(body.isPinned),
-            personId: body.personId || '',
+            ...payload,
             userID: user.uid,
             createdAt: new Date().toISOString()
         });

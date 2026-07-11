@@ -1,9 +1,8 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
+import { buildNoteUpdatePayload } from 'lib/note-api-utils';
 import { getDb } from 'lib/firebase-admin';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
-
-const EDITABLE_FIELDS = ['text', 'category', 'noteDate', 'isPinned'];
 
 export async function PATCH(request, { params }) {
     const { id } = await params;
@@ -23,27 +22,10 @@ export async function PATCH(request, { params }) {
         }
 
         const body = await request.json().catch(() => ({}));
-        const updates = {};
+        const { updates, error } = buildNoteUpdatePayload(body, snap.data());
 
-        for (const field of EDITABLE_FIELDS) {
-            if (body[field] !== undefined) {
-                updates[field] = body[field];
-            }
-        }
-
-        if (updates.text !== undefined) {
-            updates.text = (updates.text || '').trim();
-            if (!updates.text) {
-                return NextResponse.json({ error: 'Note text is required' }, { status: 400 });
-            }
-        }
-
-        if (updates.isPinned !== undefined) {
-            updates.isPinned = Boolean(updates.isPinned);
-        }
-
-        if (!Object.keys(updates).length) {
-            return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+        if (error) {
+            return NextResponse.json({ error }, { status: 400 });
         }
 
         await ref.update(updates);
