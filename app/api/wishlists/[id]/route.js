@@ -1,7 +1,6 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { validateHttpsUrl } from 'lib/gift-vault-utils';
 import { getDb } from 'lib/firebase-admin';
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 const EDITABLE_FIELDS = ['title', 'price', 'url', 'category', 'iconId', 'imageURL', 'description'];
@@ -52,7 +51,6 @@ export async function PATCH(request, { params }) {
         }
 
         await ref.update(updates);
-        revalidateTag('firestore:wishlists');
 
         return NextResponse.json({ ok: true });
     } catch (error) {
@@ -79,7 +77,6 @@ export async function DELETE(request, { params }) {
         }
 
         await ref.delete();
-        revalidateTag('firestore:wishlists');
 
         return NextResponse.json({ ok: true });
     } catch (error) {

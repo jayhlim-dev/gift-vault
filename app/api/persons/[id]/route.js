@@ -1,6 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { getDb } from 'lib/firebase-admin';
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 const EDITABLE_FIELDS = ['name', 'birthday', 'relationship', 'avatarURL', 'bio', 'isFavorite'];
@@ -46,7 +45,6 @@ export async function PATCH(request, { params }) {
         }
 
         await ref.update(updates);
-        revalidateTag('firestore:persons');
 
         return NextResponse.json({ ok: true });
     } catch (error) {
@@ -93,11 +91,6 @@ export async function DELETE(request, { params }) {
 
         batch.delete(ref);
         await batch.commit();
-
-        revalidateTag('firestore:persons');
-        revalidateTag('firestore:notes');
-        revalidateTag('firestore:wishlists');
-        revalidateTag('firestore:reminders');
 
         return NextResponse.json({ ok: true });
     } catch (error) {

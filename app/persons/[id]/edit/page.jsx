@@ -4,7 +4,7 @@ import { BackButton } from 'components/BackButton';
 import { ConfirmDialog } from 'components/ConfirmDialog';
 import { PersonForm } from 'components/persons/PersonForm';
 import { useApiClient } from 'lib/hooks/useApiClient';
-import { invalidateFirebaseCollectionCache, invalidateFirebaseCollectionCaches, useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import { useLoading } from 'lib/LoadingContext';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -27,7 +27,6 @@ export default function EditPersonPage() {
 
     async function handleSubmit(values) {
         await request(`/api/persons/${id}`, { method: 'PATCH', body: values });
-        invalidateFirebaseCollectionCache('persons');
         router.push(`/persons/${id}`);
     }
 
@@ -39,7 +38,6 @@ export default function EditPersonPage() {
             await runWithLoading(
                 async () => {
                     await request(`/api/persons/${id}`, { method: 'DELETE' });
-                    invalidateFirebaseCollectionCaches(['persons', 'notes', 'wishlists']);
                     setShowDeleteConfirm(false);
                     router.push('/');
                 },

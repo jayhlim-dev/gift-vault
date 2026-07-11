@@ -1,7 +1,6 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { buildReminderUpdatePayload } from 'lib/reminder-api-utils';
 import { getDb } from 'lib/firebase-admin';
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 export async function PATCH(request, { params }) {
@@ -29,7 +28,6 @@ export async function PATCH(request, { params }) {
         }
 
         await ref.update(updates);
-        revalidateTag('firestore:reminders');
 
         return NextResponse.json({ ok: true });
     } catch (error) {
@@ -56,7 +54,6 @@ export async function DELETE(request, { params }) {
         }
 
         await ref.delete();
-        revalidateTag('firestore:reminders');
 
         return NextResponse.json({ ok: true });
     } catch (error) {

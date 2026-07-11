@@ -1,4 +1,3 @@
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { getDb } from 'lib/firebase-admin';
@@ -28,8 +27,6 @@ export async function POST(request) {
                 },
                 { merge: true }
             );
-
-        revalidateTag('firestore:users');
 
         return NextResponse.json({ ok: true });
     } catch (error) {

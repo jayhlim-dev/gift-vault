@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from 'lib/auth/verify-request';
-import { getCachedCollection } from 'lib/firebase-admin';
+import { getCollection } from 'lib/firebase-admin';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 /*
 Collections that belong to a specific user. Requests for these require a valid
@@ -15,8 +18,7 @@ Generic Firestore read endpoint.
 Example: GET /api/firebase/people
 Example with limit: GET /api/firebase/people?limit=20
 
-Data is cached for 30 minutes (see lib/firebase-admin.js), so repeated
-requests within that window are served from cache instead of hitting Firestore again.
+Data is read directly from Firestore on each request.
 */
 export async function GET(request, { params }) {
     const { collection } = await params;
@@ -46,7 +48,7 @@ export async function GET(request, { params }) {
     }
 
     try {
-        const data = await getCachedCollection(collection, { limit, where });
+        const data = await getCollection(collection, { limit, where });
 
         return NextResponse.json({
             collection,

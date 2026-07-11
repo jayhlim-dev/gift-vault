@@ -1,6 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { getDb } from 'lib/firebase-admin';
-import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -28,8 +27,6 @@ export async function POST(request) {
             userID: user.uid,
             createdAt: new Date().toISOString()
         });
-
-        revalidateTag('firestore:persons');
 
         return NextResponse.json({ id: docRef.id }, { status: 201 });
     } catch (error) {

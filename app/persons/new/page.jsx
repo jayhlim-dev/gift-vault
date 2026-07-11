@@ -3,7 +3,6 @@
 import { BackButton } from 'components/BackButton';
 import { PersonForm } from 'components/persons/PersonForm';
 import { useApiClient } from 'lib/hooks/useApiClient';
-import { invalidateFirebaseCollectionCache } from 'lib/hooks/useFirebaseCollection';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -16,7 +15,6 @@ export default function NewPersonPage() {
 
     async function handleSubmit(values) {
         const result = await request('/api/persons', { method: 'POST', body: values });
-        invalidateFirebaseCollectionCache('persons');
         router.push(`/persons/${result.id}`);
     }
 
