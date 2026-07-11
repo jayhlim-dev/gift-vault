@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
-export function LatestNoteCard({ name, note, timeAgo, avatarSrc, href, showAction = true, className = '' }) {
+import { NoteTagChip } from 'components/persons/NoteTagChip';
+
+export function LatestNoteCard({ name, note, timeAgo, tagLabel, avatarSrc, href, showAction = true, className = '' }) {
     const content = (
         <>
             <div className="flex min-w-0 items-center gap-3 w-full">
@@ -19,12 +21,12 @@ export function LatestNoteCard({ name, note, timeAgo, avatarSrc, href, showActio
                 <div className="min-w-0 w-full">
                     <div className="flex items-center justify-between gap-2">
                         <p className="min-w-0 max-w-32 line-clamp-1 text-sm font-semibold text-neutral-900">{name}</p>
-
-                        <div className="flex shrink-0 gap-2">
-                            <span className="text-xs font-semibold text-neutral-500 whitespace-nowrap">{timeAgo}</span>
-                        </div>
                     </div>
                     <p className="mt-1 line-clamp-2 max-w-52 text-2xs leading-5 text-neutral-600">{note}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <NoteTagChip label={tagLabel} />
+                        {timeAgo ? <span className="text-2xs text-neutral-500">{timeAgo}</span> : null}
+                    </div>
                 </div>
             </div>
 

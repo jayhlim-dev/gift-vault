@@ -2,7 +2,10 @@
 
 import { LatestNoteCard } from 'components/LatestNoteCard';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
+import { DEFAULT_NOTE_TAG, NOTE_TAGS } from 'lib/note-tags';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+
+const NOTE_TAG_LABELS = Object.fromEntries(NOTE_TAGS.map((tag) => [tag.id, tag.label]));
 
 export function LatestNotesSection() {
     const { data: notes, isLoading: notesLoading } = useFirebaseCollection('notes');
@@ -48,7 +51,8 @@ export function LatestNotesSection() {
                 name: person?.name || note.category || 'Note',
                 note: note.text,
                 timeAgo: formatRelativeTime(note.createdAt),
-                avatarSrc: person?.avatarURL || undefined
+                avatarSrc: person?.avatarURL || undefined,
+                tagLabel: NOTE_TAG_LABELS[note.category || DEFAULT_NOTE_TAG] || 'Other'
             };
         });
 
@@ -77,6 +81,7 @@ export function LatestNotesSection() {
                         name={note.name}
                         note={note.note}
                         timeAgo={note.timeAgo}
+                        tagLabel={note.tagLabel}
                         avatarSrc={note.avatarSrc}
                         showAction
                         className="animate-fade-in"

@@ -1,9 +1,10 @@
 'use client';
 
 import { AddNoteModal } from 'components/persons/AddNoteModal';
-import { GiftIdeasIcon, NoteFoodIcon, NoteHobbyIcon, NotesTabIcon, PlusIcon } from 'components/persons/PersonIcons';
+import { NoteTagChip } from 'components/persons/NoteTagChip';
+import { GiftIdeasIcon, NoteFoodIcon, NoteHobbyIcon, NoteRestaurantIcon, NoteRoutineIcon, NoteSkincareIcon, NotesTabIcon, PlusIcon } from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
-import { NOTE_TAGS } from 'lib/note-tags';
+import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,6 +22,16 @@ const NOTE_CATEGORY_META = {
         icon: NoteFoodIcon,
         iconClass: 'text-[#4A7FA5]'
     },
+    restaurant: {
+        title: 'Restaurant',
+        icon: NoteRestaurantIcon,
+        iconClass: 'text-[#4A7FA5]'
+    },
+    skincare: {
+        title: 'Skincare',
+        icon: NoteSkincareIcon,
+        iconClass: 'text-[#D4625A]'
+    },
     allergy: {
         title: 'Allergy & Diet',
         icon: NoteFoodIcon,
@@ -35,6 +46,11 @@ const NOTE_CATEGORY_META = {
         title: 'Hobbies',
         icon: NoteHobbyIcon,
         iconClass: 'text-[#D4625A]'
+    },
+    routine: {
+        title: 'Routine',
+        icon: NoteRoutineIcon,
+        iconClass: 'text-[#4A7FA5]'
     },
     other: {
         title: 'Other',
@@ -79,6 +95,37 @@ function getNoteMeta(category) {
     };
 }
 
+function getNoteCategory(note) {
+    return note.category || DEFAULT_NOTE_TAG;
+}
+
+function NoteTagFilter({ activeTag, onChange, availableTags }) {
+    const tags = [{ id: 'all', label: 'All', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' }, ...availableTags];
+
+    return (
+        <div className="flex flex-col gap-2">
+            <span className="text-sm font-semibold text-neutral-800">Tags</span>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {tags.map((tag) => {
+                    const isActive = activeTag === tag.id;
+                    return (
+                        <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => onChange(tag.id)}
+                            className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold whitespace-nowrap transition ${
+                                isActive ? NOTE_TAG_ACTIVE_CLASS : tag.className
+                            }`}
+                        >
+                            {tag.label}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function ChevronIcon({ expanded = false, size = 16 }) {
     return (
         <svg
@@ -100,8 +147,8 @@ function ChevronIcon({ expanded = false, size = 16 }) {
     );
 }
 
-function getNoteSubtitle(meta, note) {
-    const parts = [note.category ? meta.title : 'Note'];
+function getNoteMetaLine(note) {
+    const parts = [];
 
     if (note.isPinned) {
         parts.push('Pinned');
@@ -119,8 +166,10 @@ function NoteCard({ note, onEdit }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [canExpand, setCanExpand] = useState(false);
     const textRef = useRef(null);
-    const meta = getNoteMeta(note.category);
+    const category = getNoteCategory(note);
+    const meta = getNoteMeta(category);
     const Icon = meta.icon;
+    const metaLine = getNoteMetaLine(note);
 
     useEffect(() => {
         const element = textRef.current;
@@ -161,7 +210,10 @@ function NoteCard({ note, onEdit }) {
                     >
                         {note.text}
                     </p>
-                    <p className="mt-0.5 text-2xs text-neutral-500">{getNoteSubtitle(meta, note)}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <NoteTagChip label={meta.title} />
+                        {metaLine ? <span className="text-2xs text-neutral-500">{metaLine}</span> : null}
+                    </div>
                 </button>
                 {showExpandToggle ? (
                     <button
@@ -179,10 +231,44 @@ function NoteCard({ note, onEdit }) {
     );
 }
 
+const NOTES_PER_PAGE = 5;
+
+function NotePagination({ currentPage, totalPages, onPageChange }) {
+    if (totalPages <= 1) {
+        return null;
+    }
+
+    return (
+        <div className="flex items-center justify-between gap-3 pt-1">
+            <button
+                type="button"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="rounded-full border border-[#F0E8E5] bg-white px-4 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-[#FAF8F7] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+                Previous
+            </button>
+            <span className="text-xs font-medium text-neutral-500">
+                {currentPage} / {totalPages}
+            </span>
+            <button
+                type="button"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="rounded-full border border-[#F0E8E5] bg-white px-4 py-2 text-xs font-semibold text-neutral-600 transition hover:bg-[#FAF8F7] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+                Next
+            </button>
+        </div>
+    );
+}
+
 export function PersonNotesTab({ personId, person, isProfileIncomplete = false }) {
     const { data: notes, isLoading, refetch } = useFirebaseCollection('notes', { personId });
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingNote, setEditingNote] = useState(null);
+    const [activeTag, setActiveTag] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
 
     function openAddModal() {
         setEditingNote(null);
@@ -208,6 +294,33 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
         return (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0);
     });
 
+    const usedTagIds = new Set(sortedNotes.map(getNoteCategory));
+    const availableTags = NOTE_TAGS.filter((tag) => usedTagIds.has(tag.id));
+
+    useEffect(() => {
+        if (activeTag !== 'all' && !usedTagIds.has(activeTag)) {
+            setActiveTag('all');
+        }
+    }, [activeTag, notes]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTag]);
+
+    const filteredNotes =
+        activeTag === 'all' ? sortedNotes : sortedNotes.filter((note) => getNoteCategory(note) === activeTag);
+
+    const totalPages = Math.max(1, Math.ceil(filteredNotes.length / NOTES_PER_PAGE));
+
+    useEffect(() => {
+        setCurrentPage((page) => Math.min(page, totalPages));
+    }, [totalPages]);
+
+    const paginatedNotes = filteredNotes.slice((currentPage - 1) * NOTES_PER_PAGE, currentPage * NOTES_PER_PAGE);
+
+    const hasNotes = sortedNotes.length > 0;
+    const showTagFilter = hasNotes && availableTags.length > 1;
+
     return (
         <>
             <div className="flex flex-col gap-3">
@@ -215,12 +328,32 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
                     <div className="rounded-3xl bg-white px-6 py-14 shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                         <div className="mx-auto h-4 w-28 animate-pulse rounded-full bg-neutral-100" />
                     </div>
-                ) : sortedNotes.length ? (
-                    <ul className="flex flex-col gap-2">
-                        {sortedNotes.map((note) => (
-                            <NoteCard key={note.id} note={note} onEdit={openEditModal} />
-                        ))}
-                    </ul>
+                ) : hasNotes ? (
+                    <div className="flex flex-col gap-3">
+                        {showTagFilter ? (
+                            <NoteTagFilter activeTag={activeTag} onChange={setActiveTag} availableTags={availableTags} />
+                        ) : null}
+
+                        {filteredNotes.length ? (
+                            <>
+                                <ul className="flex flex-col gap-2">
+                                    {paginatedNotes.map((note) => (
+                                        <NoteCard key={note.id} note={note} onEdit={openEditModal} />
+                                    ))}
+                                </ul>
+                                <NotePagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    onPageChange={setCurrentPage}
+                                />
+                            </>
+                        ) : (
+                            <div className="rounded-3xl bg-white px-6 py-10 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
+                                <p className="text-sm font-semibold text-neutral-800">No notes in this tag.</p>
+                                <p className="mt-1 text-xs text-neutral-400">Try another tag or add a new note.</p>
+                            </div>
+                        )}
+                    </div>
                 ) : isProfileIncomplete ? (
                     <div className="flex flex-col items-center gap-5 rounded-3xl bg-white px-8 py-12 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                         <Image src={NotesEmptyImage} alt="" className="h-32 w-auto object-contain" aria-hidden="true" />
@@ -255,7 +388,7 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
                 )}
             </div>
 
-            {!isProfileIncomplete && sortedNotes.length ? (
+            {!isProfileIncomplete && hasNotes ? (
                 <button
                     type="button"
                     onClick={openAddModal}

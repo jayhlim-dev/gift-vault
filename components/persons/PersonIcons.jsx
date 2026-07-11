@@ -188,6 +188,46 @@ export function NoteFoodIcon({ size = 18 }) {
     );
 }
 
+export function NoteRestaurantIcon({ size = 18 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path
+                d="M5 10h14v9a1 1 0 01-1 1H6a1 1 0 01-1-1v-9z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinejoin="round"
+            />
+            <path d="M5 10l7-5 7 5" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinejoin="round" />
+            <path d="M9 14h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+    );
+}
+
+export function NoteRoutineIcon({ size = 18 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" fill="none" />
+            <path d="M12 8v4l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+export function NoteSkincareIcon({ size = 18 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <path
+                d="M9 4h6l1 3v11a2 2 0 01-2 2h-4a2 2 0 01-2-2V7l1-3z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinejoin="round"
+            />
+            <path d="M10 10h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+    );
+}
+
 export function NoteHobbyIcon({ size = 18 }) {
     return (
         <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
