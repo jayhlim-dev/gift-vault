@@ -1,10 +1,10 @@
 'use client';
 
 import { AddNoteModal } from 'components/persons/AddNoteModal';
-import { NoteTagChip } from 'components/persons/NoteTagChip';
+import { NotePinnedChip, NoteTagChip } from 'components/persons/NoteTagChip';
 import { GiftIdeasIcon, NoteFoodIcon, NoteHobbyIcon, NoteRestaurantIcon, NoteRoutineIcon, NoteSkincareIcon, NotesTabIcon, PlusIcon } from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
-import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
+import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, getFilterTagsForNotes, getNoteTagLabel } from 'lib/note-tags';
 import {
     formatUrlForDisplay,
     getNoteDisplayBody,
@@ -20,11 +20,6 @@ import NotesEmptyImage from 'public/images/assets/note-ill.png';
 import { useEffect, useRef, useState } from 'react';
 
 const NOTE_CATEGORY_META = {
-    'gift-ideas': {
-        title: 'Gift Ideas',
-        icon: GiftIdeasIcon,
-        iconClass: 'text-[#D4625A]'
-    },
     'food-drinks': {
         title: 'Food & Drinks',
         icon: NoteFoodIcon,
@@ -35,20 +30,10 @@ const NOTE_CATEGORY_META = {
         icon: NoteRestaurantIcon,
         iconClass: 'text-[#4A7FA5]'
     },
-    skincare: {
-        title: 'Skincare',
-        icon: NoteSkincareIcon,
+    'gift-ideas': {
+        title: 'Gift Ideas',
+        icon: GiftIdeasIcon,
         iconClass: 'text-[#D4625A]'
-    },
-    allergy: {
-        title: 'Allergy & Diet',
-        icon: NoteFoodIcon,
-        iconClass: 'text-[#4A7FA5]'
-    },
-    size: {
-        title: 'Size',
-        icon: NotesTabIcon,
-        iconClass: 'text-[#4A7FA5]'
     },
     hobbies: {
         title: 'Hobbies',
@@ -65,14 +50,27 @@ const NOTE_CATEGORY_META = {
         icon: NotesTabIcon,
         iconClass: 'text-neutral-500'
     },
+    skincare: {
+        title: 'Skincare',
+        icon: NoteSkincareIcon,
+        iconClass: 'text-[#D4625A]'
+    },
+    allergy: {
+        title: 'Allergy & Diet',
+        icon: NoteFoodIcon,
+        iconClass: 'text-[#4A7FA5]'
+    },
+    size: {
+        title: 'Size',
+        icon: NotesTabIcon,
+        iconClass: 'text-[#4A7FA5]'
+    },
     favorites: {
         title: 'Favorites',
         icon: NotesTabIcon,
         iconClass: 'text-[#D4625A]'
     }
 };
-
-const NOTE_TAG_LABELS = Object.fromEntries(NOTE_TAGS.map((tag) => [tag.id, tag.label]));
 
 const DEFAULT_NOTE_META = {
     title: 'Note',
@@ -89,12 +87,7 @@ function getNoteMeta(category) {
         return NOTE_CATEGORY_META[category];
     }
 
-    const label =
-        NOTE_TAG_LABELS[category] ||
-        category
-            .split('-')
-            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-            .join(' ');
+    const label = getNoteTagLabel(category);
 
     return {
         title: label,
@@ -155,19 +148,12 @@ function ChevronIcon({ expanded = false, size = 16 }) {
     );
 }
 
-function getNoteMetaLine(note) {
-    const parts = [];
+function isNotePinned(note) {
+    return note?.isPinned === true || note?.isPinned === 'true' || note?.isPinned === 1;
+}
 
-    if (note.isPinned) {
-        parts.push('Pinned');
-    }
-
-    const time = formatRelativeTime(note.createdAt);
-    if (time) {
-        parts.push(time);
-    }
-
-    return parts.join(' · ');
+function getNoteTimeLabel(note) {
+    return formatRelativeTime(note.createdAt) || '';
 }
 
 function RestaurantDetailLine({ label, value, linkable = false, clampLine = false }) {
@@ -229,7 +215,8 @@ function NoteCard({ note, onEdit }) {
     const category = getNoteCategory(note);
     const meta = getNoteMeta(category);
     const Icon = meta.icon;
-    const metaLine = getNoteMetaLine(note);
+    const timeLabel = getNoteTimeLabel(note);
+    const pinned = isNotePinned(note);
     const displayTitle = getNoteDisplayTitle(note);
     const displayPreview = getNoteDisplayBody(note);
     const isStructuredRestaurant = isStructuredRestaurantNote(note);
@@ -281,9 +268,10 @@ function NoteCard({ note, onEdit }) {
                     {!isExpanded && displayPreview ? (
                         <p className="mt-0.5 truncate text-2xs text-neutral-500">{displayPreview}</p>
                     ) : null}
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
                         <NoteTagChip label={meta.title} />
-                        {metaLine ? <span className="text-2xs text-neutral-500">{metaLine}</span> : null}
+                        {pinned ? <NotePinnedChip /> : null}
+                        {timeLabel ? <span className="text-2xs text-neutral-500">{timeLabel}</span> : null}
                     </div>
                 </button>
                 {showExpandToggle ? (
@@ -303,7 +291,7 @@ function NoteCard({ note, onEdit }) {
     );
 }
 
-const NOTES_PER_PAGE = 5;
+const NOTES_PER_PAGE = 8;
 
 function NotePagination({ currentPage, totalPages, onPageChange }) {
     if (totalPages <= 1) {
@@ -358,7 +346,7 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
     }
 
     const sortedNotes = notes.slice().sort((a, b) => {
-        const pinnedDiff = Number(Boolean(b.isPinned)) - Number(Boolean(a.isPinned));
+        const pinnedDiff = Number(isNotePinned(b)) - Number(isNotePinned(a));
         if (pinnedDiff !== 0) {
             return pinnedDiff;
         }
@@ -367,7 +355,7 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
     });
 
     const usedTagIds = new Set(sortedNotes.map(getNoteCategory));
-    const availableTags = NOTE_TAGS.filter((tag) => usedTagIds.has(tag.id));
+    const availableTags = getFilterTagsForNotes(usedTagIds);
 
     useEffect(() => {
         if (activeTag !== 'all' && !usedTagIds.has(activeTag)) {
@@ -447,7 +435,7 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
                         <Image src={NotesEmptyImage} alt="" className="h-32 w-auto object-contain" aria-hidden="true" />
                         <p className="text-lg font-bold text-neutral-900">No notes yet.</p>
                         <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
-                            Add gift ideas, sizes, allergies, and other details so you always have them on hand.
+                            Add gift ideas, restaurants, hobbies, routines, and other details so you always have them on hand.
                         </p>
                         <button
                             type="button"

@@ -2,11 +2,9 @@
 
 import { LatestNoteCard } from 'components/LatestNoteCard';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
-import { DEFAULT_NOTE_TAG, NOTE_TAGS } from 'lib/note-tags';
+import { DEFAULT_NOTE_TAG, getNoteTagLabel } from 'lib/note-tags';
 import { getNoteDisplayBody, getNoteDisplayTitle } from 'lib/restaurant-note-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
-
-const NOTE_TAG_LABELS = Object.fromEntries(NOTE_TAGS.map((tag) => [tag.id, tag.label]));
 
 export function LatestNotesSection() {
     const { data: notes, isLoading: notesLoading } = useFirebaseCollection('notes');
@@ -56,7 +54,7 @@ export function LatestNotesSection() {
                 note: displayPreview ? `${displayTitle} — ${displayPreview}` : displayTitle,
                 timeAgo: formatRelativeTime(note.createdAt),
                 avatarSrc: person?.avatarURL || undefined,
-                tagLabel: NOTE_TAG_LABELS[note.category || DEFAULT_NOTE_TAG] || 'Other'
+                tagLabel: getNoteTagLabel(note.category || DEFAULT_NOTE_TAG)
             };
         });
 
