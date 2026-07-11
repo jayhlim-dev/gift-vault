@@ -7,6 +7,13 @@ import { useApiClient } from 'lib/hooks/useApiClient';
 import { useLoading } from 'lib/LoadingContext';
 import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, NOTE_TAGS } from 'lib/note-tags';
 import {
+    HOBBY_NOTE_TAG,
+    initHobbyFieldsFromNote,
+    isLegacyHobbyNote,
+    isStructuredHobbyNote,
+    validateHobbyNoteInput
+} from 'lib/hobby-note-utils';
+import {
     RESTAURANT_NOTE_TAG,
     initRestaurantFieldsFromNote,
     isLegacyRestaurantNote,
@@ -51,11 +58,15 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
     const [isPinned, setIsPinned] = useState(Boolean(note?.isPinned));
     const [selectedTag, setSelectedTag] = useState(note?.category || DEFAULT_NOTE_TAG);
     const initialRestaurantFields = initRestaurantFieldsFromNote(note);
+    const initialHobbyFields = initHobbyFieldsFromNote(note);
     const [restaurantName, setRestaurantName] = useState(initialRestaurantFields.restaurantName);
     const [location, setLocation] = useState(initialRestaurantFields.location);
     const [menuUrl, setMenuUrl] = useState(initialRestaurantFields.menuUrl);
-    const [instagramUrl, setInstagramUrl] = useState(initialRestaurantFields.instagramUrl);
+    const [instagramUrl, setInstagramUrl] = useState(initialRestaurantFields.instagramUrl || initialHobbyFields.instagramUrl);
+    const [hobbyName, setHobbyName] = useState(initialHobbyFields.hobbyName);
+    const [destination, setDestination] = useState(initialHobbyFields.destination);
     const [useStructuredRestaurant, setUseStructuredRestaurant] = useState(isStructuredRestaurantNote(note));
+    const [useStructuredHobby, setUseStructuredHobby] = useState(isStructuredHobbyNote(note));
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -70,11 +81,14 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
     }, []);
 
     const isRestaurantTag = selectedTag === RESTAURANT_NOTE_TAG;
+    const isHobbyTag = selectedTag === HOBBY_NOTE_TAG;
     const showStructuredRestaurant =
         isRestaurantTag && (!isEditing || isStructuredRestaurantNote(note) || useStructuredRestaurant);
+    const showStructuredHobby = isHobbyTag && (!isEditing || isStructuredHobbyNote(note) || useStructuredHobby);
     const showLegacyRestaurantText =
         isRestaurantTag && isEditing && isLegacyRestaurantNote(note) && !useStructuredRestaurant;
-    const showRegularNoteText = !isRestaurantTag || showLegacyRestaurantText;
+    const showLegacyHobbyText = isHobbyTag && isEditing && isLegacyHobbyNote(note) && !useStructuredHobby;
+    const showRegularNoteText = (!isRestaurantTag && !isHobbyTag) || showLegacyRestaurantText || showLegacyHobbyText;
 
     async function handleSubmit(event) {
         event?.preventDefault?.();
@@ -84,6 +98,17 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                 restaurantName,
                 text,
                 menuUrl,
+                instagramUrl
+            });
+
+            if (validationError) {
+                setError(validationError);
+                return;
+            }
+        } else if (showStructuredHobby) {
+            const validationError = validateHobbyNoteInput({
+                hobbyName,
+                text,
                 instagramUrl
             });
 
@@ -114,6 +139,14 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                             restaurantName: restaurantName.trim(),
                             location: location.trim(),
                             menuUrl: menuUrl.trim(),
+                            instagramUrl: instagramUrl.trim()
+                        });
+                    }
+
+                    if (showStructuredHobby) {
+                        Object.assign(body, {
+                            hobbyName: hobbyName.trim(),
+                            destination: destination.trim(),
                             instagramUrl: instagramUrl.trim()
                         });
                     }
@@ -298,6 +331,58 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                         </div>
                     ) : null}
 
+                    {showStructuredHobby ? (
+                        <div className="flex flex-col gap-4">
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Hobby
+                                <input
+                                    type="text"
+                                    value={hobbyName}
+                                    onChange={(event) => setHobbyName(event.target.value)}
+                                    placeholder="e.g. Traveling, Photography"
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Where / Destination
+                                <input
+                                    type="text"
+                                    value={destination}
+                                    onChange={(event) => setDestination(event.target.value)}
+                                    placeholder="e.g. Europe, Berlin, Milan"
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Instagram
+                                <input
+                                    type="url"
+                                    value={instagramUrl}
+                                    onChange={(event) => setInstagramUrl(event.target.value)}
+                                    placeholder="https://instagram.com/..."
+                                    disabled={isSubmitting}
+                                    className={fieldClassName}
+                                />
+                            </label>
+
+                            <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
+                                Personal Notes
+                                <textarea
+                                    value={text}
+                                    onChange={(event) => setText(event.target.value)}
+                                    placeholder="What they want to do there, places to visit, etc."
+                                    rows={4}
+                                    disabled={isSubmitting}
+                                    className={`${noteContentClassName} resize-none`}
+                                />
+                            </label>
+                        </div>
+                    ) : null}
+
                     {showRegularNoteText ? (
                         <label className="flex flex-col gap-2 text-sm font-semibold text-neutral-800">
                             Note Content
@@ -320,6 +405,17 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
                             className="text-left text-xs font-semibold text-[#D4625A] transition hover:text-[#c4564f] disabled:opacity-50"
                         >
                             Switch to structured restaurant fields
+                        </button>
+                    ) : null}
+
+                    {showLegacyHobbyText ? (
+                        <button
+                            type="button"
+                            onClick={() => setUseStructuredHobby(true)}
+                            disabled={isSubmitting}
+                            className="text-left text-xs font-semibold text-[#D4625A] transition hover:text-[#c4564f] disabled:opacity-50"
+                        >
+                            Switch to structured hobby fields
                         </button>
                     ) : null}
 

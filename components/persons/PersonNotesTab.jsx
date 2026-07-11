@@ -9,10 +9,13 @@ import {
     formatUrlForDisplay,
     getNoteDisplayBody,
     getNoteDisplayTitle,
-    isLegacyRestaurantNote,
     isStructuredRestaurantNote,
     noteHasRestaurantLinks
 } from 'lib/restaurant-note-utils';
+import {
+    isStructuredHobbyNote,
+    noteHasHobbyLinks
+} from 'lib/hobby-note-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -156,7 +159,7 @@ function getNoteTimeLabel(note) {
     return formatRelativeTime(note.createdAt) || '';
 }
 
-function RestaurantDetailLine({ label, value, linkable = false, clampLine = false }) {
+function NoteDetailLine({ label, value, linkable = false, clampLine = false }) {
     const trimmed = value?.trim();
     if (!trimmed) {
         return null;
@@ -196,12 +199,32 @@ function RestaurantNoteDetails({ note }) {
 
     return (
         <div className="mt-3 flex flex-col gap-2 border-t border-[#F0E8E5] pt-3">
-            <RestaurantDetailLine label="Location" value={note.location} linkable clampLine />
-            <RestaurantDetailLine label="Menu" value={note.menuUrl} linkable clampLine />
-            <RestaurantDetailLine label="Instagram" value={note.instagramUrl} linkable clampLine />
+            <NoteDetailLine label="Location" value={note.location} linkable clampLine />
+            <NoteDetailLine label="Menu" value={note.menuUrl} linkable clampLine />
+            <NoteDetailLine label="Instagram" value={note.instagramUrl} linkable clampLine />
             {hasNotes ? (
                 <div className="mt-1 border-t border-[#F0E8E5] pt-2">
-                    <RestaurantDetailLine label="Notes" value={note.text} />
+                    <NoteDetailLine label="Notes" value={note.text} />
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+function HobbyNoteDetails({ note }) {
+    if (!isStructuredHobbyNote(note)) {
+        return null;
+    }
+
+    const hasNotes = Boolean(note.text?.trim());
+
+    return (
+        <div className="mt-3 flex flex-col gap-2 border-t border-[#F0E8E5] pt-3">
+            <NoteDetailLine label="Where" value={note.destination} />
+            <NoteDetailLine label="Instagram" value={note.instagramUrl} linkable clampLine />
+            {hasNotes ? (
+                <div className="mt-1 border-t border-[#F0E8E5] pt-2">
+                    <NoteDetailLine label="Notes" value={note.text} />
                 </div>
             ) : null}
         </div>
@@ -211,7 +234,8 @@ function RestaurantNoteDetails({ note }) {
 function NoteCard({ note, onEdit }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [canExpand, setCanExpand] = useState(false);
-    const textRef = useRef(null);
+    const titleRef = useRef(null);
+    const previewRef = useRef(null);
     const category = getNoteCategory(note);
     const meta = getNoteMeta(category);
     const Icon = meta.icon;
@@ -220,20 +244,26 @@ function NoteCard({ note, onEdit }) {
     const displayTitle = getNoteDisplayTitle(note);
     const displayPreview = getNoteDisplayBody(note);
     const isStructuredRestaurant = isStructuredRestaurantNote(note);
-    const isLegacyRestaurant = isLegacyRestaurantNote(note);
+    const isStructuredHobby = isStructuredHobbyNote(note);
+    const hasStructuredDetails =
+        (isStructuredRestaurant && noteHasRestaurantLinks(note)) || (isStructuredHobby && noteHasHobbyLinks(note));
 
     useEffect(() => {
-        const element = textRef.current;
-        if (!element || isExpanded) {
+        if (isExpanded) {
             return;
         }
 
-        const titleOverflow = element.scrollWidth > element.clientWidth;
-        const legacyOverflow = isLegacyRestaurant && (note.text.includes('\n') || titleOverflow);
-        const structuredOverflow = isStructuredRestaurant && Boolean(displayPreview || noteHasRestaurantLinks(note) || note.text?.includes('\n'));
+        const titleOverflow = titleRef.current ? titleRef.current.scrollWidth > titleRef.current.clientWidth : false;
+        const previewOverflow = previewRef.current
+            ? previewRef.current.scrollWidth > previewRef.current.clientWidth
+            : false;
+        const hasHiddenStructuredNotes =
+            (isStructuredRestaurant || isStructuredHobby) && Boolean(note.text?.trim()) && note.text.trim() !== displayPreview;
 
-        setCanExpand(titleOverflow || legacyOverflow || structuredOverflow);
-    }, [displayPreview, displayTitle, isExpanded, isLegacyRestaurant, isStructuredRestaurant, note.text]);
+        setCanExpand(
+            Boolean(displayPreview) || titleOverflow || previewOverflow || hasStructuredDetails || hasHiddenStructuredNotes
+        );
+    }, [displayPreview, displayTitle, isExpanded, isStructuredHobby, isStructuredRestaurant, hasStructuredDetails, note.text]);
 
     function handleToggleExpand(event) {
         event.stopPropagation();
@@ -258,15 +288,22 @@ function NoteCard({ note, onEdit }) {
                     className="min-w-0 flex-1 cursor-pointer text-left transition hover:opacity-80"
                 >
                     <p
-                        ref={textRef}
+                        ref={titleRef}
                         className={`text-sm font-semibold text-neutral-800 ${
                             isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
                         }`}
                     >
-                        {isExpanded && isLegacyRestaurant ? note.text : displayTitle}
+                        {displayTitle}
                     </p>
-                    {!isExpanded && displayPreview ? (
-                        <p className="mt-0.5 truncate text-2xs text-neutral-500">{displayPreview}</p>
+                    {displayPreview ? (
+                        <p
+                            ref={previewRef}
+                            className={`mt-0.5 text-2xs text-neutral-500 ${
+                                isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
+                            }`}
+                        >
+                            {displayPreview}
+                        </p>
                     ) : null}
                     <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
                         <NoteTagChip label={meta.title} />
@@ -287,6 +324,7 @@ function NoteCard({ note, onEdit }) {
                 ) : null}
             </div>
             {isExpanded && isStructuredRestaurant ? <RestaurantNoteDetails note={note} /> : null}
+            {isExpanded && isStructuredHobby ? <HobbyNoteDetails note={note} /> : null}
         </li>
     );
 }

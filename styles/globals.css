@@ -71,6 +71,11 @@
     .animate-fade-in {
         animation: fade-in 0.35s ease-out both;
     }
+
+    .footer-frost {
+        -webkit-backdrop-filter: blur(24px);
+        backdrop-filter: blur(24px);
+    }
 }
 
 @layer components {
