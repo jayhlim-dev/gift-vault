@@ -1,7 +1,7 @@
 'use client';
 
 import { UpcomingCard } from 'components/UpcomingCard';
-import { buildUpcomingItems } from 'lib/reminder-utils';
+import { buildUpcomingItems, getUpcomingItemDisplay } from 'lib/reminder-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Link from 'next/link';
 
@@ -30,6 +30,7 @@ export function BdayReminderSection() {
         );
     }
 
+    const personById = new Map(persons.map((person) => [person.id, person]));
     const upcomingItems = buildUpcomingItems({ persons, reminders });
     const primaryItem = upcomingItems[0];
 
@@ -37,6 +38,8 @@ export function BdayReminderSection() {
         return null;
     }
 
+    const person = personById.get(primaryItem.personId);
+    const { title, subtitle } = getUpcomingItemDisplay(primaryItem, person);
     const href =
         primaryItem.type === 'birthday'
             ? `/persons/${primaryItem.personId}`
@@ -58,8 +61,8 @@ export function BdayReminderSection() {
 
             <UpcomingCard
                 icon={primaryItem.icon}
-                label={primaryItem.label}
-                dateText={primaryItem.dateText}
+                label={title}
+                dateText={subtitle}
                 dueText={primaryItem.dueText}
                 href={href}
                 className="animate-fade-in"
