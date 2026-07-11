@@ -3,6 +3,7 @@
 import { ProductCard } from 'components/ProductCard';
 import { getToneForRelationship } from 'lib/gift-vault-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+import Link from 'next/link';
 
 export function SavedPeopleSection() {
     const { data: persons, isLoading } = useFirebaseCollection('persons');
@@ -12,12 +13,12 @@ export function SavedPeopleSection() {
         <section className="w-full">
             <header className="mb-4 flex items-start justify-between gap-3">
                 <h4 className="leading-tight text-gray-800 font-semibold">Saved People</h4>
-                <button
-                    type="button"
-                    className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-400 "
+                <Link
+                    href="/persons"
+                    className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-400"
                 >
                     See all
-                </button>
+                </Link>
             </header>
 
             <div className="grid grid-cols-4 gap-3">

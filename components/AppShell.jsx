@@ -8,7 +8,7 @@ import { Footer } from './footer';
 import { Header } from './header';
 
 const CHROME_HIDDEN_EXACT_PATHS = ['/login'];
-const HEADER_HIDDEN_PREFIXES = ['/persons'];
+const HEADER_HIDDEN_PREFIXES = ['/persons/'];
 const FOOTER_HIDDEN_EXACT_PATHS = ['/login', '/persons/new'];
 const FOOTER_HIDDEN_SUFFIXES = ['/edit'];
 

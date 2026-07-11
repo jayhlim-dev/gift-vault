@@ -5,13 +5,13 @@ import { usePathname } from 'next/navigation';
 
 export function Footer() {
     const pathname = usePathname();
-    const isPersonDetailPage = /^\/persons\/[^/]+$/.test(pathname);
+    const isPeoplePage = pathname === '/persons' || /^\/persons\/[^/]+$/.test(pathname);
 
     const navItems = [
         { label: 'Home', icon: 'home', href: '/', isActive: pathname === '/' },
-        { label: 'People', icon: 'people', href: '/', isActive: isPersonDetailPage },
+        { label: 'People', icon: 'people', href: '/persons', isActive: isPeoplePage },
         { label: 'Reminders', icon: 'alarm', href: '/reminders', isActive: pathname === '/reminders' },
-        { label: 'Wishlist', icon: 'heart', href: '/', isActive: false },
+        { label: 'Wishlist', icon: 'heart', href: '/wishlists', isActive: pathname === '/wishlists' },
         // { label: 'Profile', icon: 'profile', href: '/', isActive: false }
     ];
 

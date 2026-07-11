@@ -68,7 +68,9 @@ function PersonDetailPageContent() {
     const person = persons.find((item) => item.id === id);
 
     async function handleDelete() {
-        if (!window.confirm(`Delete ${person.name}? This will also delete their notes, wishlist items, and reminders.`)) {
+        if (
+            !window.confirm(`Delete ${person.name}? This will also delete their notes, wishlist items, and reminders.`)
+        ) {
             return;
         }
 
@@ -163,8 +165,17 @@ function PersonDetailPageContent() {
                     </span>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                    <h2 className="text-xl font-bold text-neutral-900">{person.name}</h2>
+                <div className="flex flex-col items-center gap-1">
+                    <div className="flex items-center justify-center gap-1">
+                        <Link
+                            href={`/persons/${id}/edit`}
+                            aria-label="Edit profile"
+                            className="flex h-8  items-center justify-center rounded-full text-[#D4625A] no-underline transition hover:bg-[#FDEBEA]"
+                        >
+                            <h2 className="text-xl font-bold text-neutral-900">{person.name}</h2>
+                            {/* <PencilIcon size={16} /> */}
+                        </Link>
+                    </div>
                     {isProfileIncomplete ? (
                         <>
                             <p className="text-sm text-neutral-400">Not filled yet</p>
@@ -177,16 +188,7 @@ function PersonDetailPageContent() {
                             </Link>
                         </>
                     ) : (
-                        <>
-                            <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
-                            <Link
-                                href={`/persons/${id}/edit`}
-                                className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-[#D4625A] no-underline transition hover:text-[#c4564f]"
-                            >
-                                <PencilIcon size={14} />
-                                Edit Profile Detail
-                            </Link>
-                        </>
+                        <p className="text-sm text-neutral-500">Birthday: {formatShortDate(birthdayDate)}</p>
                     )}
                 </div>
             </div>
