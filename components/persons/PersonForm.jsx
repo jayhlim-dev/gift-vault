@@ -26,7 +26,7 @@ const RELATIONSHIP_OPTIONS = [
 const BIO_MAX_LENGTH = 120;
 
 const inputClassName =
-    'w-full rounded-full border border-[#F0E8E5] bg-[#FAF8F7] px-5 py-3.5 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-rose-300 focus:bg-white focus:outline-none disabled:opacity-60';
+    'w-full rounded-full border border-[#F0E8E5] bg-white px-5 py-3.5 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-rose-300 focus:outline-none disabled:opacity-60';
 
 export function PersonForm({
     initialValues = {},
@@ -217,7 +217,7 @@ export function PersonForm({
                                 className={`flex aspect-square flex-col items-center justify-center gap-1.5 rounded-2xl border text-2xs font-medium transition disabled:opacity-60 ${
                                     isActive
                                         ? 'border-[#D4625A] bg-[#FDF5F4] text-[#D4625A]'
-                                        : 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-500'
+                                        : 'border-[#F0E8E5] bg-white text-neutral-500'
                                 }`}
                             >
                                 <Icon size={18} />
@@ -244,11 +244,11 @@ export function PersonForm({
                     rows={4}
                     disabled={isSubmitting}
                     placeholder="Write a short note about them..."
-                    className="resize-none rounded-3xl border border-[#F0E8E5] bg-[#FAF8F7] px-5 py-4 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-rose-300 focus:bg-white focus:outline-none disabled:opacity-60"
+                    className="resize-none rounded-3xl border border-[#F0E8E5] bg-white px-5 py-4 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-rose-300 focus:outline-none disabled:opacity-60"
                 />
             </div>
 
-            <div className="flex items-center justify-between rounded-3xl border border-[#F0E8E5] bg-[#FAF8F7] px-5 py-4">
+            <div className="flex items-center justify-between rounded-3xl border border-[#F0E8E5] bg-white px-5 py-4">
                 <div>
                     <p className="text-sm font-semibold text-neutral-800">Favorite</p>
                     <p className="text-xs text-neutral-400">Mark as favorite</p>

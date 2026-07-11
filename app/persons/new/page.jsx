@@ -3,6 +3,7 @@
 import { BackButton } from 'components/BackButton';
 import { PersonForm } from 'components/persons/PersonForm';
 import { useApiClient } from 'lib/hooks/useApiClient';
+import { invalidateFirebaseCollectionCache } from 'lib/hooks/useFirebaseCollection';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -15,11 +16,12 @@ export default function NewPersonPage() {
 
     async function handleSubmit(values) {
         const result = await request('/api/persons', { method: 'POST', body: values });
+        invalidateFirebaseCollectionCache('persons');
         router.push(`/persons/${result.id}`);
     }
 
     return (
-        <div className="mx-auto flex min-h-full w-full max-w-sm flex-col bg-white px-5 pt-4 pb-10">
+        <div className="mx-auto flex min-h-full w-full max-w-sm flex-col  pt-4 pb-10">
             <header className="relative mb-6 flex items-center justify-center py-1">
                 <BackButton fallbackHref="/" className="absolute left-0 -ml-2" />
                 <h1 className="text-base font-semibold text-neutral-800">Add New Person</h1>

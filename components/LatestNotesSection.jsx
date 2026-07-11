@@ -44,6 +44,7 @@ export function LatestNotesSection() {
 
             return {
                 id: note.id,
+                personId: note.personId || null,
                 name: person?.name || note.category || 'Note',
                 note: note.text,
                 timeAgo: formatRelativeTime(note.createdAt),
@@ -72,6 +73,7 @@ export function LatestNotesSection() {
                 {latestNotes.map((note) => (
                     <LatestNoteCard
                         key={note.id}
+                        href={note.personId ? `/persons/${note.personId}` : undefined}
                         name={note.name}
                         note={note.note}
                         timeAgo={note.timeAgo}

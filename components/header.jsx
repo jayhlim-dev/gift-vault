@@ -10,7 +10,12 @@ import { useEffect, useRef, useState } from 'react';
 export function Header() {
     const { user, signOutUser } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [photoError, setPhotoError] = useState(false);
     const menuRef = useRef(null);
+
+    useEffect(() => {
+        setPhotoError(false);
+    }, [user?.photoURL]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -27,6 +32,9 @@ export function Header() {
         setIsMenuOpen(false);
         await signOutUser();
     }
+
+    const userInitial = user?.displayName?.charAt(0) || user?.email?.charAt(0) || '?';
+    const showUserPhoto = Boolean(user?.photoURL) && !photoError;
 
     return (
         <nav className="flex items-center justify-between gap-3 pb-6 pt-8">
@@ -53,11 +61,17 @@ export function Header() {
                             className="block h-10 w-10 overflow-hidden rounded-full border border-[#F2E9E6]"
                             aria-label="Account menu"
                         >
-                            {user.photoURL ? (
-                                <img src={user.photoURL} alt={user.displayName || 'Profile'} className="h-full w-full object-cover" />
+                            {showUserPhoto ? (
+                                <img
+                                    src={user.photoURL}
+                                    alt={user.displayName || 'Profile'}
+                                    className="h-full w-full object-cover"
+                                    referrerPolicy="no-referrer"
+                                    onError={() => setPhotoError(true)}
+                                />
                             ) : (
                                 <div className="flex h-full w-full items-center justify-center bg-[#FDEBEA] text-sm font-semibold text-rose-400">
-                                    {user.displayName?.charAt(0) || user.email?.charAt(0) || '?'}
+                                    {userInitial}
                                 </div>
                             )}
                         </button>

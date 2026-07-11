@@ -1,8 +1,8 @@
-export function LatestNoteCard({ name, note, timeAgo, avatarSrc, showAction = true, className = '' }) {
-    return (
-        <article
-            className={`relative flex items-center justify-between rounded-3xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] bg-white px-4 py-3 gap-1 w-full ${className}`}
-        >
+import Link from 'next/link';
+
+export function LatestNoteCard({ name, note, timeAgo, avatarSrc, href, showAction = true, className = '' }) {
+    const content = (
+        <>
             <div className="flex min-w-0 items-center gap-3 w-full">
                 {avatarSrc ? (
                     <img
@@ -28,16 +28,30 @@ export function LatestNoteCard({ name, note, timeAgo, avatarSrc, showAction = tr
                 </div>
             </div>
 
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="shrink-0 text-neutral-300">
-                <path
-                    d="M9 6l6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
-        </article>
+            {showAction ? (
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="shrink-0 text-neutral-300">
+                    <path
+                        d="M9 6l6 6-6 6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </svg>
+            ) : null}
+        </>
     );
+
+    const cardClassName = `relative flex items-center justify-between rounded-3xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] bg-white px-4 py-3 gap-1 w-full ${className}`;
+
+    if (href) {
+        return (
+            <Link href={href} className={`${cardClassName} no-underline transition hover:bg-[#FFFCFB]`}>
+                {content}
+            </Link>
+        );
+    }
+
+    return <article className={cardClassName}>{content}</article>;
 }

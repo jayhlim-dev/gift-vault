@@ -14,7 +14,7 @@ import { PersonNotesTab } from 'components/persons/PersonNotesTab';
 import { PersonWishlistTab } from 'components/persons/PersonWishlistTab';
 import { formatShortDate, toDate } from 'lib/gift-vault-utils';
 import { useApiClient } from 'lib/hooks/useApiClient';
-import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
+import { invalidateFirebaseCollectionCaches, useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -65,6 +65,7 @@ export default function PersonDetailPage() {
         setIsDeleting(true);
         try {
             await request(`/api/persons/${id}`, { method: 'DELETE' });
+            invalidateFirebaseCollectionCaches(['persons', 'notes', 'wishlists']);
             router.push('/');
         } catch (err) {
             console.error('[PersonDetailPage] Failed to delete person:', err);

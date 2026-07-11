@@ -86,7 +86,7 @@ function buildYearOptions() {
 }
 
 const triggerClassName =
-    'flex w-full items-center rounded-full border border-[#F0E8E5] bg-[#FAF8F7] py-3.5 pr-5 pl-11 text-left text-sm font-normal transition focus:border-rose-300 focus:bg-white focus:outline-none disabled:opacity-60';
+    'flex w-full items-center rounded-full border border-[#F0E8E5] bg-white py-3.5 pr-5 pl-11 text-left text-sm font-normal transition focus:border-rose-300 focus:outline-none disabled:opacity-60';
 
 export function BirthdayPicker({
     value,
