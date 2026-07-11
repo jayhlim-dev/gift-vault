@@ -3,7 +3,6 @@
 import { NoteCard } from 'components/persons/NoteCard';
 import { toDate } from 'lib/gift-vault-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
-import Link from 'next/link';
 
 export function LatestNotesSection() {
     const { data: notes, isLoading: notesLoading } = useFirebaseCollection('notes');
@@ -13,7 +12,7 @@ export function LatestNotesSection() {
     if (isLoading) {
         return (
             <section className="w-full pb-2">
-                <header className="mb-4 flex items-start justify-between gap-3">
+                <header className="mb-4">
                     <h4 className="leading-tight font-semibold text-gray-800">Latest Notes</h4>
                 </header>
                 <ul className="flex flex-col gap-2">
@@ -22,7 +21,7 @@ export function LatestNotesSection() {
                             key={key}
                             className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
                         >
-                            <div className="h-11 w-11 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+                            <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-neutral-200" />
                             <div className="flex min-w-0 flex-1 flex-col gap-2">
                                 <div className="h-3 w-24 animate-pulse rounded-full bg-neutral-200" />
                                 <div className="h-2.5 w-40 max-w-full animate-pulse rounded-full bg-neutral-200" />
@@ -47,14 +46,8 @@ export function LatestNotesSection() {
 
     return (
         <section className="w-full pb-2">
-            <header className="mb-4 flex items-start justify-between gap-3">
+            <header className="mb-4">
                 <h4 className="leading-tight font-semibold text-gray-800">Latest Notes</h4>
-                <Link
-                    href="/persons"
-                    className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-400"
-                >
-                    See all
-                </Link>
             </header>
 
             <ul className="flex flex-col gap-2">
@@ -67,6 +60,8 @@ export function LatestNotesSection() {
                             note={note}
                             href={note.personId ? `/persons/${note.personId}` : undefined}
                             personName={person?.name}
+                            personAvatarSrc={person?.avatarURL}
+                            personAvatarInitial={person?.name?.charAt(0)?.toUpperCase()}
                             className="animate-fade-in"
                         />
                     );

@@ -205,7 +205,15 @@ function HobbyNoteDetails({ note }) {
     );
 }
 
-export function NoteCard({ note, onEdit, href, personName, className = '' }) {
+export function NoteCard({
+    note,
+    onEdit,
+    href,
+    personName,
+    personAvatarSrc,
+    personAvatarInitial,
+    className = ''
+}) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [canExpand, setCanExpand] = useState(false);
     const titleRef = useRef(null);
@@ -259,13 +267,14 @@ export function NoteCard({ note, onEdit, href, personName, className = '' }) {
     }
 
     const showExpandToggle = canExpand || isExpanded;
+    const showPersonAvatar = Boolean(personAvatarSrc || personAvatarInitial || (personName && href));
 
     const body = (
         <>
             <p
                 ref={titleRef}
                 className={`text-sm font-semibold text-neutral-800 ${
-                    isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
+                    isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'line-clamp-1'
                 }`}
             >
                 {displayTitle}
@@ -274,13 +283,15 @@ export function NoteCard({ note, onEdit, href, personName, className = '' }) {
                 <p
                     ref={previewRef}
                     className={`mt-0.5 text-2xs text-neutral-500 ${
-                        isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'truncate'
+                        isExpanded ? 'whitespace-pre-wrap wrap-break-word leading-relaxed' : 'line-clamp-1'
                     }`}
                 >
                     {displayPreview}
                 </p>
             ) : null}
-            {personName ? <p className="mt-1 truncate text-2xs font-medium text-[#D4625A]">{personName}</p> : null}
+            {personName && !showPersonAvatar ? (
+                <p className="mt-1 truncate text-2xs font-medium text-[#D4625A]">{personName}</p>
+            ) : null}
             <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1.5">
                 <NoteTagChip label={meta.title} />
                 {pinned ? <NotePinnedChip /> : null}
@@ -296,11 +307,28 @@ export function NoteCard({ note, onEdit, href, personName, className = '' }) {
             } ${href ? 'hover:bg-[#FFFCFB]' : ''} ${className}`}
         >
             <div className="flex items-center gap-3">
-                <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] ${meta.iconClass}`}
-                >
-                    <Icon size={20} />
-                </div>
+                {showPersonAvatar ? (
+                    personAvatarSrc ? (
+                        <img
+                            src={personAvatarSrc}
+                            alt={personName ? `${personName} avatar` : 'Person avatar'}
+                            className="h-11 w-11 shrink-0 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8D9D2] text-sm font-semibold text-neutral-700"
+                            aria-label={personName ? `${personName} avatar` : 'Person avatar'}
+                        >
+                            {personAvatarInitial || personName?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                    )
+                ) : (
+                    <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] ${meta.iconClass}`}
+                    >
+                        <Icon size={20} />
+                    </div>
+                )}
 
                 {href ? (
                     <Link href={href} className="min-w-0 flex-1 no-underline transition hover:opacity-80">
