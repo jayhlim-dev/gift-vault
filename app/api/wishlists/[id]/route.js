@@ -4,7 +4,7 @@ import { getDb } from 'lib/firebase-admin';
 import { revalidateTag } from 'next/cache';
 import { NextResponse } from 'next/server';
 
-const EDITABLE_FIELDS = ['title', 'price', 'url', 'category', 'iconId'];
+const EDITABLE_FIELDS = ['title', 'price', 'url', 'category', 'iconId', 'imageURL', 'description'];
 
 export async function PATCH(request, { params }) {
     const { id } = await params;

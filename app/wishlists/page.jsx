@@ -1,39 +1,12 @@
 'use client';
 
-import { WishlistIcon } from 'components/persons/WishlistIcons';
-import { formatIdrDisplay, formatRelativeTime, toDate } from 'lib/gift-vault-utils';
+import { WishlistCard } from 'components/persons/WishlistCard';
+import { toDate } from 'lib/gift-vault-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Image from 'next/image';
 import Link from 'next/link';
 import WishlistEmptyImage from 'public/images/assets/gift-ill.png';
 import { useEffect, useMemo, useState } from 'react';
-
-const WISHLIST_CATEGORY_LABELS = {
-    want: 'Want',
-    need: 'Need',
-    hobby: 'Hobby',
-    gift: 'Gift'
-};
-
-function getWishlistSubtitle(item) {
-    const parts = [];
-
-    if (item.price) {
-        parts.push(formatIdrDisplay(item.price));
-    }
-
-    const categoryLabel = WISHLIST_CATEGORY_LABELS[item.category] || item.category;
-    if (categoryLabel) {
-        parts.push(categoryLabel);
-    }
-
-    const time = formatRelativeTime(item.createdAt);
-    if (time) {
-        parts.push(time);
-    }
-
-    return parts.join(' · ');
-}
 
 function WishlistsPersonFilter({ activePersonId, onChange, people }) {
     const options = [{ id: 'all', label: 'All' }, ...people.map((person) => ({ id: person.id, label: person.name }))];
@@ -69,33 +42,11 @@ function WishlistsPersonFilter({ activePersonId, onChange, people }) {
 
 function WishlistListCard({ item, personName }) {
     return (
-        <Link
+        <WishlistCard
+            item={item}
+            personName={personName}
             href={`/persons/${item.personId}?tab=wishlist`}
-            className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3 no-underline shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition hover:bg-[#FFFCFB]"
-        >
-            {item.imageURL ? (
-                <img src={item.imageURL} alt={item.title} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
-            ) : (
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] text-[#D4625A]">
-                    <WishlistIcon id={item.iconId || 'gift'} size={20} />
-                </div>
-            )}
-            <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-neutral-800">{item.title}</p>
-                <p className="mt-0.5 truncate text-2xs text-neutral-500">{getWishlistSubtitle(item)}</p>
-                {personName ? <p className="mt-1 text-2xs font-medium text-[#D4625A]">{personName}</p> : null}
-            </div>
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" className="shrink-0 text-neutral-300">
-                <path
-                    d="M9 6l6 6-6 6"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-            </svg>
-        </Link>
+        />
     );
 }
 
@@ -167,9 +118,11 @@ export default function WishlistsPage() {
                             {filteredItems.map((item) => {
                                 const person = personById.get(item.personId);
                                 return (
-                                    <li key={item.id}>
-                                        <WishlistListCard item={item} personName={person?.name} />
-                                    </li>
+                                    <WishlistListCard
+                                        key={item.id}
+                                        item={item}
+                                        personName={person?.name}
+                                    />
                                 );
                             })}
                         </ul>
