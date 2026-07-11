@@ -8,21 +8,23 @@ import {
     HeartIcon,
     NotesTabIcon,
     PencilIcon,
-    PersonIcon
+    PersonIcon,
+    RemindersTabIcon
 } from 'components/persons/PersonIcons';
 import { PersonNotesTab } from 'components/persons/PersonNotesTab';
+import { PersonRemindersTab } from 'components/persons/PersonRemindersTab';
 import { PersonWishlistTab } from 'components/persons/PersonWishlistTab';
 import { formatShortDate, toDate } from 'lib/gift-vault-utils';
 import { useApiClient } from 'lib/hooks/useApiClient';
 import { invalidateFirebaseCollectionCaches, useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 const TABS = [
     { id: 'notes', label: 'Notes', Icon: NotesTabIcon },
     { id: 'wishlist', label: 'Wishlist', Icon: HeartIcon },
-    // { id: 'ideas', label: 'Gift Ideas', Icon: GiftIdeasIcon }
+    { id: 'reminders', label: 'Reminders', Icon: RemindersTabIcon }
 ];
 
 function MenuIcon() {
@@ -35,15 +37,23 @@ function MenuIcon() {
     );
 }
 
-export default function PersonDetailPage() {
+function PersonDetailPageContent() {
     const { id } = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { data: persons, isLoading } = useFirebaseCollection('persons');
     const { request } = useApiClient();
     const [activeTab, setActiveTab] = useState('notes');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const menuRef = useRef(null);
+
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab === 'notes' || tab === 'wishlist' || tab === 'reminders') {
+            setActiveTab(tab);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -58,14 +68,14 @@ export default function PersonDetailPage() {
     const person = persons.find((item) => item.id === id);
 
     async function handleDelete() {
-        if (!window.confirm(`Delete ${person.name}? This will also delete their notes and wishlist items.`)) {
+        if (!window.confirm(`Delete ${person.name}? This will also delete their notes, wishlist items, and reminders.`)) {
             return;
         }
 
         setIsDeleting(true);
         try {
             await request(`/api/persons/${id}`, { method: 'DELETE' });
-            invalidateFirebaseCollectionCaches(['persons', 'notes', 'wishlists']);
+            invalidateFirebaseCollectionCaches(['persons', 'notes', 'wishlists', 'reminders']);
             router.push('/');
         } catch (err) {
             console.error('[PersonDetailPage] Failed to delete person:', err);
@@ -217,6 +227,9 @@ export default function PersonDetailPage() {
                 {activeTab === 'wishlist' ? (
                     <PersonWishlistTab personId={id} person={person} isProfileIncomplete={isProfileIncomplete} />
                 ) : null}
+                {activeTab === 'reminders' ? (
+                    <PersonRemindersTab personId={id} person={person} isProfileIncomplete={isProfileIncomplete} />
+                ) : null}
                 {activeTab === 'ideas' ? (
                     <div className="flex flex-col items-center gap-3 rounded-3xl bg-white px-6 py-10 text-center shadow-[0_4px_24px_rgba(0,0,0,0.06)]">
                         <GiftIdeasIcon size={44} />
@@ -226,5 +239,25 @@ export default function PersonDetailPage() {
                 ) : null}
             </div>
         </div>
+    );
+}
+
+function PersonDetailPageFallback() {
+    return (
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 px-5 pt-4 pb-28">
+            <div className="h-9 w-full animate-pulse rounded-full bg-neutral-100" />
+            <div className="flex flex-col items-center gap-3">
+                <div className="h-30 w-30 animate-pulse rounded-full bg-neutral-100" />
+                <div className="h-4 w-24 animate-pulse rounded-full bg-neutral-100" />
+            </div>
+        </div>
+    );
+}
+
+export default function PersonDetailPage() {
+    return (
+        <Suspense fallback={<PersonDetailPageFallback />}>
+            <PersonDetailPageContent />
+        </Suspense>
     );
 }

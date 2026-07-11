@@ -43,15 +43,15 @@ export function Header() {
             </Link>
 
             <div className="flex items-center gap-2">
-                <Link href="/">
-                    <Image src={NotificationIcon} alt="Notifications" className="h-auto w-9 object-contain" />
+                {/* <Link href="/reminders">
+                    <Image src={NotificationIcon} alt="Reminders" className="h-auto w-9 object-contain" />
                 </Link>
                 <Link
                     href="/"
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FDEBEA] no-underline text-rose-400 font-bold text-lg pb-0.5"
                 >
                     +
-                </Link>
+                </Link> */}
 
                 {user ? (
                     <div className="relative" ref={menuRef}>

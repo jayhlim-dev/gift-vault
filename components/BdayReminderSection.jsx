@@ -1,17 +1,20 @@
 'use client';
 
-import { formatShortDate, getNextBirthdayCountdown } from 'lib/gift-vault-utils';
+import { UpcomingCard } from 'components/UpcomingCard';
+import { buildUpcomingItems } from 'lib/reminder-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
-import { BdayCard } from './BdayCard';
+import Link from 'next/link';
 
 export function BdayReminderSection() {
-    const { data: persons, isLoading } = useFirebaseCollection('persons');
+    const { data: persons, isLoading: personsLoading } = useFirebaseCollection('persons');
+    const { data: reminders, isLoading: remindersLoading } = useFirebaseCollection('reminders');
+    const isLoading = personsLoading || remindersLoading;
 
     if (isLoading) {
         return (
             <section className="w-full">
                 <header className="mb-4 flex items-start justify-between gap-3">
-                    <h4 className="leading-tight text-gray-800 font-semibold">Upcoming</h4>
+                    <h4 className="leading-tight font-semibold text-gray-800">Upcoming</h4>
                 </header>
                 <div className="flex h-20 w-full items-center justify-between rounded-2xl bg-white px-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
@@ -27,39 +30,38 @@ export function BdayReminderSection() {
         );
     }
 
-    const upcomingBirthdays = persons
-        .map((person) => {
-            const countdown = getNextBirthdayCountdown(person.birthday);
-            return countdown ? { ...person, ...countdown } : null;
-        })
-        .filter(Boolean)
-        .sort((a, b) => a.daysUntil - b.daysUntil);
+    const upcomingItems = buildUpcomingItems({ persons, reminders });
+    const primaryItem = upcomingItems[0];
 
-    const primaryPerson = upcomingBirthdays[0];
-
-    if (!primaryPerson) {
+    if (!primaryItem) {
         return null;
     }
 
-    const dueText = primaryPerson.daysUntil === 0 ? 'Today' : `in ${primaryPerson.daysUntil} day${primaryPerson.daysUntil > 1 ? 's' : ''}`;
+    const href =
+        primaryItem.type === 'birthday'
+            ? `/persons/${primaryItem.personId}`
+            : `/persons/${primaryItem.personId}?tab=reminders`;
 
     return (
         <section className="w-full">
             <header className="mb-4 flex items-start justify-between gap-3">
-                <h4 className="leading-tight text-gray-800 font-semibold">Upcoming</h4>
-                <button
-                    type="button"
-                    className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-400 "
-                >
-                    See all
-                </button>
+                <h4 className="leading-tight font-semibold text-gray-800">Upcoming</h4>
+                {upcomingItems.length > 1 ? (
+                    <Link
+                        href="/reminders"
+                        className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-500"
+                    >
+                        See all
+                    </Link>
+                ) : null}
             </header>
 
-            <BdayCard
-                label={primaryPerson.name}
-                dateText={formatShortDate(primaryPerson.nextBirthdayDate)}
-                dueText={dueText}
-                stackCount={upcomingBirthdays.length}
+            <UpcomingCard
+                icon={primaryItem.icon}
+                label={primaryItem.label}
+                dateText={primaryItem.dateText}
+                dueText={primaryItem.dueText}
+                href={href}
                 className="animate-fade-in"
             />
         </section>

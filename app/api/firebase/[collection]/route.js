@@ -6,8 +6,8 @@ import { getCachedCollection } from 'lib/firebase-admin';
 Collections that belong to a specific user. Requests for these require a valid
 Firebase ID token, and results are filtered to that user's own documents (by `userID`).
 */
-const USER_SCOPED_COLLECTIONS = new Set(['persons', 'notes', 'wishlists']);
-const PERSON_FILTERABLE_COLLECTIONS = new Set(['notes', 'wishlists']);
+const USER_SCOPED_COLLECTIONS = new Set(['persons', 'notes', 'wishlists', 'reminders']);
+const PERSON_FILTERABLE_COLLECTIONS = new Set(['notes', 'wishlists', 'reminders']);
 
 /*
 Generic Firestore read endpoint.

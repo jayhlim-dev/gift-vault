@@ -236,3 +236,25 @@ export function NoteHobbyIcon({ size = 18 }) {
         </svg>
     );
 }
+
+export function RemindersTabIcon({ size = 16 }) {
+    return (
+        <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+            <circle cx="12" cy="13" r="6.6" stroke="currentColor" strokeWidth="1.6" fill="none" />
+            <path
+                d="M12 10.2v3.1l2.1 1.4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+            />
+            <path
+                d="M5.7 4.8l-2 2.1M18.3 4.8l2 2.1"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                fill="none"
+                strokeLinecap="round"
+            />
+        </svg>
+    );
+}

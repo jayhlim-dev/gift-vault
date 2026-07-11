@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export function Footer() {
@@ -7,11 +8,11 @@ export function Footer() {
     const isPersonDetailPage = /^\/persons\/[^/]+$/.test(pathname);
 
     const navItems = [
-        { label: 'Home', icon: 'home', isActive: pathname === '/' },
-        { label: 'People', icon: 'people', isActive: isPersonDetailPage },
-        { label: 'Reminders', icon: 'alarm', isActive: false },
-        { label: 'Wishlist', icon: 'heart', isActive: false },
-        { label: 'Profile', icon: 'profile', isActive: false }
+        { label: 'Home', icon: 'home', href: '/', isActive: pathname === '/' },
+        { label: 'People', icon: 'people', href: '/', isActive: isPersonDetailPage },
+        { label: 'Reminders', icon: 'alarm', href: '/reminders', isActive: pathname === '/reminders' },
+        { label: 'Wishlist', icon: 'heart', href: '/', isActive: false },
+        // { label: 'Profile', icon: 'profile', href: '/', isActive: false }
     ];
 
     function renderIcon(icon, isActive) {
@@ -106,12 +107,12 @@ export function Footer() {
                 aria-label="Bottom navigation"
                 className="pointer-events-auto mx-auto w-full max-w-sm rounded-3xl border border-[#F1E8E3]/50 bg-white px-3 py-2 shadow-[0_-3px_16px_rgba(30,30,30,0.08)]"
             >
-                <ul className="m-0 grid list-none grid-cols-5 gap-1 p-0">
+                <ul className="m-0 grid list-none grid-cols-4 gap-1 p-0">
                     {navItems.map((item) => (
                         <li key={item.label} className="flex w-full items-center justify-center">
-                            <button
-                                type="button"
-                                className={`flex w-10 flex-col items-center justify-center gap-1 rounded-xl border py-1.5 ${
+                            <Link
+                                href={item.href}
+                                className={`flex w-20 flex-col items-center justify-center gap-1 rounded-xl border py-1.5 no-underline ${
                                     item.isActive
                                         ? 'border-[#F6D9D6]/10 bg-[#FDEBEA]'
                                         : 'border-transparent bg-transparent'
@@ -120,7 +121,7 @@ export function Footer() {
                                 aria-label={item.label}
                             >
                                 {renderIcon(item.icon, item.isActive)}
-                            </button>
+                            </Link>
                         </li>
                     ))}
                 </ul>

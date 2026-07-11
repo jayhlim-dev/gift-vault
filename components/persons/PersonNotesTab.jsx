@@ -2,7 +2,16 @@
 
 import { AddNoteModal } from 'components/persons/AddNoteModal';
 import { NotePinnedChip, NoteTagChip } from 'components/persons/NoteTagChip';
-import { GiftIdeasIcon, NoteFoodIcon, NoteHobbyIcon, NoteRestaurantIcon, NoteRoutineIcon, NoteSkincareIcon, NotesTabIcon, PlusIcon } from 'components/persons/PersonIcons';
+import {
+    GiftIdeasIcon,
+    NoteFoodIcon,
+    NoteHobbyIcon,
+    NoteRestaurantIcon,
+    NoteRoutineIcon,
+    NoteSkincareIcon,
+    NotesTabIcon,
+    PlusIcon
+} from 'components/persons/PersonIcons';
 import { formatRelativeTime, toDate } from 'lib/gift-vault-utils';
 import { DEFAULT_NOTE_TAG, NOTE_TAG_ACTIVE_CLASS, getFilterTagsForNotes, getNoteTagLabel } from 'lib/note-tags';
 import {
@@ -12,10 +21,7 @@ import {
     isStructuredRestaurantNote,
     noteHasRestaurantLinks
 } from 'lib/restaurant-note-utils';
-import {
-    isStructuredHobbyNote,
-    noteHasHobbyLinks
-} from 'lib/hobby-note-utils';
+import { isStructuredHobbyNote, noteHasHobbyLinks } from 'lib/hobby-note-utils';
 import { useFirebaseCollection } from 'lib/hooks/useFirebaseCollection';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -104,12 +110,15 @@ function getNoteCategory(note) {
 }
 
 function NoteTagFilter({ activeTag, onChange, availableTags }) {
-    const tags = [{ id: 'all', label: 'All', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' }, ...availableTags];
+    const tags = [
+        { id: 'all', label: 'All', className: 'border-[#F0E8E5] bg-[#FAF8F7] text-neutral-600' },
+        ...availableTags
+    ];
 
     return (
         <div className="flex flex-col gap-2">
             <span className="text-sm font-semibold text-neutral-800">Tags</span>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 overflow-x-auto px-1 pl-4 py-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden bg-[#D4625A] rounded-2xl">
                 {tags.map((tag) => {
                     const isActive = activeTag === tag.id;
                     return (
@@ -117,7 +126,7 @@ function NoteTagFilter({ activeTag, onChange, availableTags }) {
                             key={tag.id}
                             type="button"
                             onClick={() => onChange(tag.id)}
-                            className={`shrink-0 rounded-full border px-4 py-2 text-xs font-semibold whitespace-nowrap transition ${
+                            className={`shrink-0 rounded-full border px-4 py-2 text-xs bg-white font-semibold whitespace-nowrap transition ${
                                 isActive ? NOTE_TAG_ACTIVE_CLASS : tag.className
                             }`}
                         >
@@ -258,12 +267,26 @@ function NoteCard({ note, onEdit }) {
             ? previewRef.current.scrollWidth > previewRef.current.clientWidth
             : false;
         const hasHiddenStructuredNotes =
-            (isStructuredRestaurant || isStructuredHobby) && Boolean(note.text?.trim()) && note.text.trim() !== displayPreview;
+            (isStructuredRestaurant || isStructuredHobby) &&
+            Boolean(note.text?.trim()) &&
+            note.text.trim() !== displayPreview;
 
         setCanExpand(
-            Boolean(displayPreview) || titleOverflow || previewOverflow || hasStructuredDetails || hasHiddenStructuredNotes
+            Boolean(displayPreview) ||
+                titleOverflow ||
+                previewOverflow ||
+                hasStructuredDetails ||
+                hasHiddenStructuredNotes
         );
-    }, [displayPreview, displayTitle, isExpanded, isStructuredHobby, isStructuredRestaurant, hasStructuredDetails, note.text]);
+    }, [
+        displayPreview,
+        displayTitle,
+        isExpanded,
+        isStructuredHobby,
+        isStructuredRestaurant,
+        hasStructuredDetails,
+        note.text
+    ]);
 
     function handleToggleExpand(event) {
         event.stopPropagation();
@@ -279,7 +302,9 @@ function NoteCard({ note, onEdit }) {
             }`}
         >
             <div className="flex items-center gap-3">
-                <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] ${meta.iconClass}`}>
+                <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#FDEBEA] ${meta.iconClass}`}
+                >
                     <Icon size={20} />
                 </div>
                 <button
@@ -429,7 +454,11 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
                 ) : hasNotes ? (
                     <div className="flex flex-col gap-3">
                         {showTagFilter ? (
-                            <NoteTagFilter activeTag={activeTag} onChange={setActiveTag} availableTags={availableTags} />
+                            <NoteTagFilter
+                                activeTag={activeTag}
+                                onChange={setActiveTag}
+                                availableTags={availableTags}
+                            />
                         ) : null}
 
                         {filteredNotes.length ? (
@@ -473,7 +502,8 @@ export function PersonNotesTab({ personId, person, isProfileIncomplete = false }
                         <Image src={NotesEmptyImage} alt="" className="h-32 w-auto object-contain" aria-hidden="true" />
                         <p className="text-lg font-bold text-neutral-900">No notes yet.</p>
                         <p className="mx-auto max-w-68 text-sm leading-relaxed text-neutral-400">
-                            Add gift ideas, restaurants, hobbies, routines, and other details so you always have them on hand.
+                            Add gift ideas, restaurants, hobbies, routines, and other details so you always have them on
+                            hand.
                         </p>
                         <button
                             type="button"

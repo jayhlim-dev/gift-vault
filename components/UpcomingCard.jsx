@@ -1,26 +1,12 @@
-export function BdayCard({ label, dateText, dueText, stackCount = 1, className = '' }) {
-    const showStack = stackCount > 1;
+import Link from 'next/link';
 
-    return (
-        <article className={`relative w-full ${showStack ? 'pt-0.5' : ''} ${className}`}>
-            {/* {showThirdLayer ? (
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-2 top-0 h-20 rounded-2xl border border-[#F6EDEA] bg-[#FFF7F4]"
-                />
-            ) : null} */}
-
-            {/* {showStack ? (
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-1 -top-0.5 h-20 rounded-2xl border border-[#F3E6E2] bg-white"
-                />
-            ) : null} */}
-
-            <div className="relative z-10 flex h-20 items-center justify-between rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.04)] bg-white px-4">
+export function UpcomingCard({ icon = '🎂', label, dateText, dueText, href, className = '' }) {
+    const card = (
+        <article className={`relative w-full ${className}`}>
+            <div className="relative z-10 flex h-20 items-center justify-between rounded-2xl bg-white px-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
                 <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FDEBEA] text-xl">
-                        🎂
+                        {icon}
                     </div>
                     <div className="min-w-0 flex flex-col gap-1">
                         <p className="truncate text-base leading-tight font-semibold text-neutral-800">{label}</p>
@@ -52,5 +38,27 @@ export function BdayCard({ label, dateText, dueText, stackCount = 1, className =
                 </div>
             </div>
         </article>
+    );
+
+    if (href) {
+        return (
+            <Link href={href} className="block no-underline transition hover:opacity-90">
+                {card}
+            </Link>
+        );
+    }
+
+    return card;
+}
+
+export function BdayCard({ label, dateText, dueText, stackCount = 1, className = '' }) {
+    return (
+        <UpcomingCard
+            icon="🎂"
+            label={label}
+            dateText={dateText}
+            dueText={dueText}
+            className={className}
+        />
     );
 }

@@ -84,12 +84,20 @@ export async function DELETE(request, { params }) {
             .get();
         wishlistsSnap.forEach((doc) => batch.delete(doc.ref));
 
+        const remindersSnap = await db
+            .collection('reminders')
+            .where('personId', '==', id)
+            .where('userID', '==', user.uid)
+            .get();
+        remindersSnap.forEach((doc) => batch.delete(doc.ref));
+
         batch.delete(ref);
         await batch.commit();
 
         revalidateTag('firestore:persons');
         revalidateTag('firestore:notes');
         revalidateTag('firestore:wishlists');
+        revalidateTag('firestore:reminders');
 
         return NextResponse.json({ ok: true });
     } catch (error) {
