@@ -159,6 +159,43 @@ async function seed() {
     });
 
     console.log('Seeded wishlists');
+
+    const connectionsRef = db.collection('connections');
+    const createdAt = new Date().toISOString();
+
+    await connectionsRef.add({
+        personId: sabrinaRef.id,
+        linkedPersonId: dimasRef.id,
+        label: 'spouse',
+        userID,
+        createdAt
+    });
+
+    await connectionsRef.add({
+        personId: dimasRef.id,
+        linkedPersonId: sabrinaRef.id,
+        label: 'spouse',
+        userID,
+        createdAt
+    });
+
+    await connectionsRef.add({
+        personId: sabrinaRef.id,
+        linkedPersonId: jessicaId,
+        label: 'sibling',
+        userID,
+        createdAt
+    });
+
+    await connectionsRef.add({
+        personId: jessicaId,
+        linkedPersonId: sabrinaRef.id,
+        label: 'sibling',
+        userID,
+        createdAt
+    });
+
+    console.log('Seeded connections');
 }
 
 seed()

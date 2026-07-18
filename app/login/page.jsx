@@ -4,7 +4,7 @@ import { useAuth } from 'lib/auth/AuthContext';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import GFLogo from 'public/gift-vault-secondary-logo.png';
+import GFLogo from 'public/memnto-logo.png';
 
 function GoogleIcon() {
     return (
@@ -65,10 +65,10 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-[80vh] w-full flex-col items-center justify-center gap-8 px-4 text-center">
-            <Image src={GFLogo} alt="Gift Vault logo" className="h-auto w-36 object-contain" priority />
+            <Image src={GFLogo} alt="Memnto logo" className="h-auto w-36 object-contain" priority />
 
             <div className="flex w-full max-w-xs flex-col gap-2">
-                <h1 className="text-xl font-bold text-neutral-800">Welcome to Gift Vault</h1>
+                <h1 className="text-xl font-bold text-neutral-800">Welcome to Memnto</h1>
                 <p className="text-sm text-neutral-500">
                     Sign in to save people, track birthdays, and keep your gift ideas in one place.
                 </p>

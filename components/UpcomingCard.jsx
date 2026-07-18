@@ -1,9 +1,15 @@
 import Link from 'next/link';
 
-export function UpcomingCard({ icon = '🎂', label, dateText, dueText, href, className = '' }) {
+export function UpcomingCard({ icon = '🎂', label, dateText, dueText, href, emphasized = false, className = '' }) {
     const card = (
         <article className={`relative w-full ${className}`}>
-            <div className="relative z-10 flex h-20 items-center gap-3 rounded-2xl bg-white px-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+            <div
+                className={`relative z-10 flex h-20 items-center gap-3 rounded-2xl px-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] ${
+                    emphasized
+                        ? 'border border-[#F0C4BF] bg-linear-to-r from-[#FFFCFB] to-[#FDEBEA]/80'
+                        : 'bg-white'
+                }`}
+            >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FDEBEA] text-xl">
                     {icon}
                 </div>
@@ -14,7 +20,11 @@ export function UpcomingCard({ icon = '🎂', label, dateText, dueText, href, cl
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5 pl-1">
-                    <span className="rounded-full bg-[#FDEBEA] px-3 py-1 text-xs font-semibold whitespace-nowrap text-rose-400">
+                    <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap ${
+                            emphasized ? 'bg-[#D4625A] text-white' : 'bg-[#FDEBEA] text-rose-400'
+                        }`}
+                    >
                         {dueText}
                     </span>
                     <svg

@@ -89,6 +89,20 @@ export async function DELETE(request, { params }) {
             .get();
         remindersSnap.forEach((doc) => batch.delete(doc.ref));
 
+        const connectionsFromSnap = await db
+            .collection('connections')
+            .where('personId', '==', id)
+            .where('userID', '==', user.uid)
+            .get();
+        connectionsFromSnap.forEach((doc) => batch.delete(doc.ref));
+
+        const connectionsToSnap = await db
+            .collection('connections')
+            .where('linkedPersonId', '==', id)
+            .where('userID', '==', user.uid)
+            .get();
+        connectionsToSnap.forEach((doc) => batch.delete(doc.ref));
+
         batch.delete(ref);
         await batch.commit();
 

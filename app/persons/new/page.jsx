@@ -15,7 +15,7 @@ export default function NewPersonPage() {
 
     async function handleSubmit(values) {
         const result = await request('/api/persons', { method: 'POST', body: values });
-        router.push(`/persons/${result.id}`);
+        router.replace(`/persons/${result.id}`);
     }
 
     return (

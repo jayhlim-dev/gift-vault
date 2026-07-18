@@ -11,6 +11,7 @@ import {
     PersonIcon,
     RemindersTabIcon
 } from 'components/persons/PersonIcons';
+import { FamilyConnections } from 'components/persons/FamilyConnections';
 import { PersonNotesTab } from 'components/persons/PersonNotesTab';
 import { PersonRemindersTab } from 'components/persons/PersonRemindersTab';
 import { PersonWishlistTab } from 'components/persons/PersonWishlistTab';
@@ -69,7 +70,9 @@ function PersonDetailPageContent() {
 
     async function handleDelete() {
         if (
-            !window.confirm(`Delete ${person.name}? This will also delete their notes, wishlist items, and reminders.`)
+            !window.confirm(
+                `Delete ${person.name}? This will also delete their notes, wishlist items, reminders, and family connections.`
+            )
         ) {
             return;
         }
@@ -113,7 +116,11 @@ function PersonDetailPageContent() {
     return (
         <div className="mx-auto flex w-full max-w-sm flex-col gap-6 bg-[#FAF8F7] pt-4 pb-28">
             <header className="relative flex items-center justify-center py-1">
-                <BackButton fallbackHref="/" className="absolute left-0 -ml-2" />
+                <BackButton
+                    fallbackHref="/"
+                    className="absolute left-0 -ml-2"
+                    onClick={() => router.push('/')}
+                />
                 <h1 className="text-base font-semibold text-neutral-800">Person Detail</h1>
 
                 <div className="absolute right-0" ref={menuRef}>
@@ -239,6 +246,8 @@ function PersonDetailPageContent() {
                     </div>
                 ) : null}
             </div>
+
+            <FamilyConnections person={person} persons={persons} />
         </div>
     );
 }

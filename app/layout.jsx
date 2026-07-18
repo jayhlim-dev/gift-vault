@@ -7,28 +7,28 @@ const siteDescription =
 export const metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
     title: {
-        template: '%s | Gift Vault',
-        default: 'Gift Vault'
+        template: '%s | Memnto',
+        default: 'Memnto'
     },
     description: siteDescription,
-    applicationName: 'Gift Vault',
+    applicationName: 'Memnto',
     openGraph: {
-        title: 'Gift Vault',
+        title: 'Memnto',
         description: siteDescription,
-        siteName: 'Gift Vault',
+        siteName: 'Memnto',
         type: 'website',
         images: [
             {
-                url: '/gift-vault-secondary-logo.png',
-                alt: 'Gift Vault'
+                url: '/memnto-logo.png',
+                alt: 'Memnto'
             }
         ]
     },
     twitter: {
         card: 'summary',
-        title: 'Gift Vault',
+        title: 'Memnto',
         description: siteDescription,
-        images: ['/gift-vault-secondary-logo.png']
+        images: ['/memnto-logo.png']
     },
     icons: {
         icon: '/favicon.svg'

@@ -207,7 +207,7 @@ export function AddNoteModal({ person, note = null, onClose, onSaved, onDeleted 
 
     return (
         <div className="fixed inset-0 z-[60] flex flex-col bg-[#FAF8F7]">
-            <div className="mx-auto flex h-full w-full max-w-sm flex-col px-5 pt-4 pb-6">
+            <div className="mx-auto flex h-full w-full max-w-sm flex-col pt-4 pb-6">
                 <header className="relative mb-6 flex items-center justify-center py-1">
                     <BackButton onClick={onClose} className="absolute left-0 -ml-2" />
                     <h1 className="text-base font-semibold text-neutral-800">{isEditing ? 'Edit Note' : 'Add Note'}</h1>

@@ -13,8 +13,11 @@ export function BdayReminderSection() {
     if (isLoading) {
         return (
             <section className="w-full">
-                <header className="mb-4 flex items-start justify-between gap-3">
-                    <h4 className="leading-tight font-semibold text-gray-800">Upcoming</h4>
+                <header className="mb-3 flex items-end justify-between gap-3">
+                    <div>
+                        <h4 className="leading-tight font-semibold text-neutral-800">Upcoming</h4>
+                        <p className="mt-0.5 text-2xs text-neutral-400">Loading…</p>
+                    </div>
                 </header>
                 <div className="flex h-20 w-full items-center justify-between rounded-2xl bg-white px-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
                     <div className="flex items-center gap-3">
@@ -32,41 +35,57 @@ export function BdayReminderSection() {
 
     const personById = new Map(persons.map((person) => [person.id, person]));
     const upcomingItems = buildUpcomingItems({ persons, reminders });
-    const primaryItem = upcomingItems[0];
+    const previewItems = upcomingItems.slice(0, 2);
 
-    if (!primaryItem) {
+    if (!previewItems.length) {
         return null;
     }
 
-    const person = personById.get(primaryItem.personId);
-    const { title, subtitle } = getUpcomingItemDisplay(primaryItem, person);
-    const href =
-        primaryItem.type === 'birthday'
-            ? `/persons/${primaryItem.personId}`
-            : `/persons/${primaryItem.personId}?tab=reminders`;
-
     return (
         <section className="w-full">
-            <header className="mb-4 flex items-start justify-between gap-3">
-                <h4 className="leading-tight font-semibold text-gray-800">Upcoming</h4>
+            <header className="mb-3 flex items-end justify-between gap-3">
+                <div>
+                    <h4 className="leading-tight font-semibold text-neutral-800">Upcoming</h4>
+                    <p className="mt-0.5 text-2xs text-neutral-400">
+                        {upcomingItems.length} coming up
+                        {upcomingItems.some((item) => item.daysUntil === 0) ? ' · something today' : ''}
+                    </p>
+                </div>
                 {upcomingItems.length > 1 ? (
                     <Link
                         href="/reminders"
-                        className="pt-0.5 text-right text-xs leading-tight font-semibold text-rose-400 no-underline transition hover:text-rose-500"
+                        className="text-xs font-semibold text-[#D4625A] no-underline transition hover:text-[#c4564f]"
                     >
                         See all
                     </Link>
                 ) : null}
             </header>
 
-            <UpcomingCard
-                icon={primaryItem.icon}
-                label={title}
-                dateText={subtitle}
-                dueText={primaryItem.dueText}
-                href={href}
-                className="animate-fade-in"
-            />
+            <ul className="flex flex-col gap-2">
+                {previewItems.map((item) => {
+                    const person = personById.get(item.personId);
+                    const { title, subtitle } = getUpcomingItemDisplay(item, person);
+                    const href =
+                        item.type === 'birthday'
+                            ? `/persons/${item.personId}`
+                            : `/persons/${item.personId}?tab=reminders`;
+                    const isToday = item.daysUntil === 0;
+
+                    return (
+                        <li key={item.id}>
+                            <UpcomingCard
+                                icon={item.icon}
+                                label={title}
+                                dateText={subtitle}
+                                dueText={item.dueText}
+                                href={href}
+                                emphasized={isToday}
+                                className="animate-fade-in"
+                            />
+                        </li>
+                    );
+                })}
+            </ul>
         </section>
     );
 }

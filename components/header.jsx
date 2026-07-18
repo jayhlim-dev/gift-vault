@@ -3,7 +3,7 @@
 import { useAuth } from 'lib/auth/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
-import GFLogo from 'public/gift-vault-secondary-logo.png';
+import GFLogo from 'public/memnto-logo.png';
 import NotificationIcon from 'public/images/notification.png';
 import { useEffect, useRef, useState } from 'react';
 
@@ -37,9 +37,9 @@ export function Header() {
     const showUserPhoto = Boolean(user?.photoURL) && !photoError;
 
     return (
-        <nav className="flex items-center justify-between gap-3 pb-6 pt-8">
+        <nav className="flex items-center justify-between gap-3 pb-4 pt-6">
             <Link href="/">
-                <Image src={GFLogo} alt="Gift Vault logo" className="h-auto w-28 object-contain " />
+                <Image src={GFLogo} alt="Memnto logo" className="h-auto w-34 object-contain " />
             </Link>
 
             <div className="flex items-center gap-2">
@@ -78,7 +78,9 @@ export function Header() {
 
                         {isMenuOpen ? (
                             <div className="absolute right-0 top-12 z-20 w-48 rounded-xl bg-white p-3 shadow-[0_4px_20px_rgba(0,0,0,0.12)]">
-                                <p className="truncate text-xs font-semibold text-neutral-800">{user.displayName || 'Signed in'}</p>
+                                <p className="truncate text-xs font-semibold text-neutral-800">
+                                    {user.displayName || 'Signed in'}
+                                </p>
                                 <p className="truncate text-2xs text-neutral-500">{user.email}</p>
                                 <button
                                     type="button"
