@@ -1,5 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(request, { params }) {
@@ -34,6 +34,7 @@ export async function DELETE(request, { params }) {
         reverseSnap.forEach((doc) => batch.delete(doc.ref));
         await batch.commit();
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/connections/${id}] Failed to delete connection:`, error);

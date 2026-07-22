@@ -1,5 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -28,6 +28,7 @@ export async function POST(request) {
             createdAt: new Date().toISOString()
         });
 
+        invalidateCollectionCache();
         return NextResponse.json({ id: docRef.id }, { status: 201 });
     } catch (error) {
         console.error('[api/persons] Failed to create person:', error);

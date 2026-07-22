@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { getCollection } from 'lib/firebase-admin';
+import { PERSON_FILTERABLE_COLLECTIONS, USER_SCOPED_COLLECTIONS } from 'lib/firebase-collection-utils';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-/*
-Collections that belong to a specific user. Requests for these require a valid
-Firebase ID token, and results are filtered to that user's own documents (by `userID`).
-*/
-const USER_SCOPED_COLLECTIONS = new Set(['persons', 'notes', 'wishlists', 'reminders', 'connections']);
-const PERSON_FILTERABLE_COLLECTIONS = new Set(['notes', 'wishlists', 'reminders', 'connections']);
 
 /*
 Generic Firestore read endpoint.

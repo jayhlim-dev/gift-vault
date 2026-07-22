@@ -1,5 +1,5 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 const EDITABLE_FIELDS = ['name', 'birthday', 'relationship', 'avatarURL', 'bio', 'isFavorite'];
@@ -46,6 +46,7 @@ export async function PATCH(request, { params }) {
 
         await ref.update(updates);
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/persons/${id}] Failed to update person:`, error);
@@ -106,6 +107,7 @@ export async function DELETE(request, { params }) {
         batch.delete(ref);
         await batch.commit();
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/persons/${id}] Failed to delete person:`, error);

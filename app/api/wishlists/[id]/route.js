@@ -1,6 +1,6 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { validateHttpsUrl } from 'lib/gift-vault-utils';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 const EDITABLE_FIELDS = ['title', 'price', 'url', 'category', 'iconId', 'imageURL', 'description'];
@@ -52,6 +52,7 @@ export async function PATCH(request, { params }) {
 
         await ref.update(updates);
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/wishlists/${id}] Failed to update wishlist item:`, error);
@@ -78,6 +79,7 @@ export async function DELETE(request, { params }) {
 
         await ref.delete();
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/wishlists/${id}] Failed to delete wishlist item:`, error);

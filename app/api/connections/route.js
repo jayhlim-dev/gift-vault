@@ -1,6 +1,6 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { buildConnectionCreatePayload } from 'lib/connection-api-utils';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 async function assertOwnedPerson(db, personId, uid) {
@@ -79,6 +79,7 @@ export async function POST(request) {
 
         await batch.commit();
 
+        invalidateCollectionCache();
         return NextResponse.json({ id: forwardRef.id }, { status: 201 });
     } catch (error) {
         console.error('[api/connections] Failed to create connection:', error);

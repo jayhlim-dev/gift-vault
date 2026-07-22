@@ -1,6 +1,6 @@
 import { getUserFromRequest } from 'lib/auth/verify-request';
 import { buildReminderUpdatePayload } from 'lib/reminder-api-utils';
-import { getDb } from 'lib/firebase-admin';
+import { getDb, invalidateCollectionCache } from 'lib/firebase-admin';
 import { NextResponse } from 'next/server';
 
 export async function PATCH(request, { params }) {
@@ -29,6 +29,7 @@ export async function PATCH(request, { params }) {
 
         await ref.update(updates);
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/reminders/${id}] Failed to update reminder:`, error);
@@ -55,6 +56,7 @@ export async function DELETE(request, { params }) {
 
         await ref.delete();
 
+        invalidateCollectionCache();
         return NextResponse.json({ ok: true });
     } catch (error) {
         console.error(`[api/reminders/${id}] Failed to delete reminder:`, error);
