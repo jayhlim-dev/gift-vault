@@ -4,11 +4,12 @@ import { useAuth } from 'lib/auth/AuthContext';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import GFLogo from 'public/memnto-logo.png';
+import GiftIll from 'public/images/assets/gift-ill.png';
+import MemntoLogo from 'public/memnto-logo.png';
 
 function GoogleIcon() {
     return (
-        <svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
             <path
                 fill="#FFC107"
                 d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"
@@ -57,34 +58,103 @@ export default function LoginPage() {
 
     if (isAuthLoading || user) {
         return (
-            <div className="flex min-h-[70vh] w-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-rose-300 border-t-transparent" />
+            <div className="flex min-h-[100dvh] w-full items-center justify-center">
+                <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#D4625A]/40 border-t-[#D4625A]" />
             </div>
         );
     }
 
     return (
-        <div className="flex min-h-[80vh] w-full flex-col items-center justify-center gap-8 px-4 text-center">
-            <Image src={GFLogo} alt="Memnto logo" className="h-auto w-36 object-contain" priority />
+        <div className="relative -mx-6 flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden sm:-mx-12">
+            <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_60%_at_50%_0%,#FFD5C8_0%,#FDF5F1_48%,#F4E8E1_100%)]"
+            />
+            <div
+                aria-hidden="true"
+                className="animate-login-orb pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-[#F2A090]/55 blur-3xl"
+            />
+            <div
+                aria-hidden="true"
+                className="animate-login-orb-delayed pointer-events-none absolute -right-20 top-28 h-80 w-80 rounded-full bg-[#E8B892]/50 blur-3xl"
+            />
+            <div
+                aria-hidden="true"
+                className="animate-login-pulse pointer-events-none absolute bottom-8 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-[#D4625A]/16 blur-3xl"
+            />
 
-            <div className="flex w-full max-w-xs flex-col gap-2">
-                <h1 className="text-xl font-bold text-neutral-800">Welcome to Memnto</h1>
-                <p className="text-sm text-neutral-500">
-                    Sign in to save people, track birthdays, and keep your gift ideas in one place.
-                </p>
+            <div className="relative z-10 mx-auto flex w-full max-w-sm flex-1 flex-col px-6 pb-8 pt-11 sm:px-8">
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
+                    <Image
+                        src={MemntoLogo}
+                        alt="Memnto"
+                        className="animate-login-rise h-auto w-40 object-contain"
+                        priority
+                        style={{ animationDelay: '40ms' }}
+                    />
+
+                    <div className="animate-login-rise relative mt-5" style={{ animationDelay: '120ms' }}>
+                        <div
+                            aria-hidden="true"
+                            className="absolute inset-x-0 top-8 -z-10 h-32 rounded-full bg-[#D4625A]/20 blur-2xl"
+                        />
+                        <div className="animate-login-float">
+                            <Image
+                                src={GiftIll}
+                                alt=""
+                                className="mx-auto h-[8.75rem] w-auto object-contain drop-shadow-[0_18px_32px_rgba(212,98,90,0.2)]"
+                                aria-hidden="true"
+                                priority
+                            />
+                        </div>
+                    </div>
+
+                    <div className="animate-login-rise mt-6" style={{ animationDelay: '200ms' }}>
+                        <p className="text-[0.65rem] font-semibold tracking-[0.28em] text-[#D4625A] uppercase">
+                            Made for thoughtful giving
+                        </p>
+                        <h1 className="mt-2.5 font-[family-name:var(--font-display)] text-[2rem] leading-[1.15] font-normal tracking-tight text-[#2A2220]">
+                            Know them
+                            <span className="block italic text-[#D4625A]">by heart</span>
+                        </h1>
+                        <p className="mx-auto mt-3 max-w-[16.5rem] text-sm leading-relaxed text-[#7A6A65]">
+                            Save the little details — birthdays, notes, and gift ideas — so every moment feels personal.
+                        </p>
+                    </div>
+
+                    <div
+                        className="animate-login-rise mt-8 flex w-full flex-col items-center"
+                        style={{ animationDelay: '360ms' }}
+                    >
+                        <button
+                            type="button"
+                            onClick={handleSignIn}
+                            disabled={isSigningIn}
+                            className="group inline-flex items-center justify-center gap-2.5 rounded-full bg-[#D4625A] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(212,98,90,0.35)] transition hover:-translate-y-0.5 hover:bg-[#c4564f] hover:shadow-[0_14px_32px_rgba(212,98,90,0.4)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                        >
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white shadow-sm transition group-hover:scale-105">
+                                <GoogleIcon />
+                            </span>
+                            {isSigningIn ? 'Signing in…' : 'Continue with Google'}
+                        </button>
+
+                        {error ? (
+                            <p className="mt-3 text-xs font-medium text-[#D4625A]" role="alert">
+                                {error}
+                            </p>
+                        ) : null}
+                    </div>
+                </div>
+
+                <div className="animate-login-rise shrink-0 space-y-3" style={{ animationDelay: '440ms' }}>
+                    <p className="mx-auto hidden max-w-xs rounded-full border border-[#E8D4CC] bg-white/55 px-4 py-2 text-center text-[0.72rem] leading-snug text-[#7A6A65] backdrop-blur-sm md:block">
+                        Memnto is designed for mobile — open this on your phone for the best experience
+                    </p>
+                    <p className="text-center text-[0.68rem] tracking-[0.06em] text-[#9A8A84]">
+                        Private to you · Syncs across devices
+                    </p>
+                </div>
             </div>
-
-            <button
-                type="button"
-                onClick={handleSignIn}
-                disabled={isSigningIn}
-                className="flex w-full max-w-xs items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-neutral-700 shadow-[0_2px_10px_rgba(0,0,0,0.08)] transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-                <GoogleIcon />
-                {isSigningIn ? 'Signing in…' : 'Continue with Google'}
-            </button>
-
-            {error ? <p className="text-xs font-medium text-rose-500">{error}</p> : null}
         </div>
     );
 }

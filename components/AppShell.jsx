@@ -27,6 +27,7 @@ add/edit flow, which manage their own back navigation.
 */
 export function AppShell({ children }) {
     const pathname = usePathname();
+    const isLogin = pathname === '/login';
     const hideHeader =
         CHROME_HIDDEN_EXACT_PATHS.includes(pathname) || HEADER_HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix));
     const hideFooter = shouldHideFooter(pathname);
@@ -35,7 +36,7 @@ export function AppShell({ children }) {
     return (
         <AuthProvider>
             <LoadingProvider>
-                <div className="flex flex-col w-full max-w-5xl mx-auto grow">
+                <div className={`flex w-full grow flex-col ${isLogin ? 'max-w-none' : 'mx-auto max-w-5xl'}`}>
                     <AuthGuard>
                         {!hideHeader ? <Header /> : null}
                         <main className={showFooter ? 'grow pb-28' : hideHeader ? 'flex grow flex-col' : 'grow pb-28'}>{children}</main>
